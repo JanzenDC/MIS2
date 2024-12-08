@@ -37,17 +37,24 @@ if ($conn->connect_error) {
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
-    $lrn = $_POST['lrn'];
-    $fname = $_POST['fname'];
-    $lname = $_POST['lname'];
-    $dob = $_POST['dob'];
-    $gender = $_POST['gender'];
-    $studentType = $_POST['studentType'];
-    $schoolAttended = $_POST['schoolAttended'];
-    $gradelevel = $_POST['gradelevel'];
-    $guardianName = $_POST['guardianName'];
-    $guardian = $_POST['guardian'];
-    $curriculum = $_POST['curriculum'];
+  $lrn = $_POST['lrn'];
+  $fname = $_POST['fname'];
+  $mname = $_POST['mname'];
+  $lname = $_POST['lname'];
+  $dob = $_POST['dob'];
+  $address = $_POST['address'];
+  $cont_num = $_POST['cont_num'];
+  $religion = $_POST['religion'];
+  $age = $_POST['age'];
+  $gender = $_POST['gender'];
+  $studentType = $_POST['studentType'];
+  $schoolAttended = $_POST['schoolAttended'];
+  $gradelevel = $_POST['gradelevel'];
+  $guardianName = $_POST['guardianName'];
+  $guardian = $_POST['guardian'];
+  $curriculum = $_POST['curriculum'];
+  $status = $_POST['status'];
+  $exname = $_POST['exname'];
     
     // Handle file uploads
     $sf10File = $_FILES['sf10File'];
@@ -63,8 +70,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
     move_uploaded_file($imageFile['tmp_name'], $imageFilePath);
 
     // Insert the learner's data into the database
-    $stmt = $conn->prepare("INSERT INTO learners (lrn, fname, lname, dob, gender, studentType, schoolAttended, gradelevel, guardianName, guardian, curriculum, sf10FilePath, imageFilePath) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("isssssssssss", $lrn, $fname, $lname, $dob, $gender, $studentType, $schoolAttended, $gradelevel, $guardianName, $guardian, $curriculum, $sf10FilePath, $imageFilePath);
+    $stmt = $conn->prepare("INSERT INTO learners (lrn, fname, lname, dob, address, cont_num, religion, age, gender, studentType, schoolAttended, gradelevel, guardianName, guardianRelationship, guardian, curriculum, sf10FilePath, imageFilePath, status, mname, exname) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("isssssssssss", $lrn, $fname, $lname, $dob, $gender, $address, $cont_num, $religion, $age, $studentType, $schoolAttended, $gradelevel, $guardianName, $guardianRelationship, $guardian, $curriculum, $sf10FilePath, $imageFilePath, $mname, $status, $exname);
     
     // Removed alert messages
     if ($stmt->execute()) {
@@ -386,11 +393,17 @@ $conn->close();
                 </td>
                <td class="text-center">
                <button class="btn btn-info btn-sm view-btn" data-toggle="modal" data-target="#viewModal"
-    data-id="<?php echo $learner['id']; ?>"
+               data-id="<?php echo $learner['id']; ?>"
     data-lrn="<?php echo $learner['lrn']; ?>"
     data-fname="<?php echo $learner['first_name']; ?>"
+    data-mname="<?php echo $learner['middle_name']; ?>"
     data-lname="<?php echo $learner['last_name']; ?>"
+    data-exname="<?php echo $learner['name_extension']; ?>"
     data-dob="<?php echo $learner['dob']; ?>"
+    data-age="<?php echo $learner['age']; ?>"
+    data-address="<?php echo $learner['address']; ?>"
+    data-cont_num="<?php echo $learner['cont_num']; ?>"
+    data-religion="<?php echo $learner['religion']; ?>"
     data-gender="<?php echo $learner['gender']; ?>"
     data-gradelevel="<?php echo $learner['grade_level']; ?>"
     data-curriculum="<?php echo $learner['curriculum']; ?>"
@@ -398,6 +411,7 @@ $conn->close();
     data-studenttype="<?php echo $learner['student_type']; ?>" 
     data-guardianname="<?php echo $learner['guardian_name']; ?>" 
     data-guardianrelationship="<?php echo !empty($learner['other_guardian']) ? $learner['other_guardian'] : $learner['guardian_relationship']; ?>" 
+    data-status="<?php echo $learner['status']; ?>"
     data-image="<?php echo $learner['image_file']; ?>">
     <i class="fas fa-eye"></i>
 </button>
@@ -440,13 +454,18 @@ $conn->close();
         <p><strong>LRN:</strong> <span id="studentLrn"></span></p>
         <p><strong>Full Name:</strong> <span id="studentName"></span></p>
         <p><strong>Date of Birth:</strong> <span id="studentDob"></span></p>
+        <p><strong>Age:</strong> <span id="age"></span></p>
         <p><strong>Gender:</strong> <span id="studentGender"></span></p>
+        <p><strong>Address:</strong> <span id="address"></span></p>
+        <p><strong>Contact Number:</strong> <span id="cont_num"></span></p>
+        <p><strong>Religion:</strong> <span id="religion"></span></p>
         <p><strong>Grade Level:</strong> <span id="studentGradeLevel"></span></p>
         <p><strong>Curriculum:</strong> <span id="studentCurriculum"></span></p>
         <p><strong>Elementary School Attended:</strong> <span id="studentschoolAttended"></span></p>
         <p><strong>Type of Learner:</strong> <span id="studentType"></span></p>
         <p><strong>Guardian Name:</strong> <span id="studentGuardianName"></span></p>
         <p><strong>Guardian Relationship:</strong> <span id="studentGuardianRelationship"></span></p>
+        <p><strong>Status:</strong> <span id="status"></span></p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -472,8 +491,14 @@ $conn->close();
     var id = $(this).data('id');
     var lrn = $(this).data('lrn');
     var fname = $(this).data('fname');
+    var mname = $(this).data('mname');
     var lname = $(this).data('lname');
+    var exname = $(this).data('exname');
     var dob = $(this).data('dob');
+    var age = $(this).data('age');
+    var address = $(this).data('address');
+    var cont_num = $(this).data('cont_num');
+    var religion = $(this).data('religion');
     var gender = $(this).data('gender');
     var gradeLevel = $(this).data('gradelevel');
     var curriculum = $(this).data('curriculum');
@@ -481,19 +506,25 @@ $conn->close();
     var studentType = $(this).data('studenttype');
     var guardianName = $(this).data('guardianname');
     var guardianRelationship = $(this).data('guardianrelationship'); // Make sure the case is correct
+    var status = $(this).data('status');
     var image = $(this).data('image');
 
     // Set modal content
     $('#studentLrn').text(lrn);
-    $('#studentName').text(fname + ' ' + lname);
+    $('#studentName').text(fname + ' ' + mname+ ' ' + lname + ' ' + exname);
     $('#studentDob').text(dob);
+    $('#age').text(age);
     $('#studentGender').text(gender);
+    $('#address').text(address);
+    $('#cont_num').text(cont_num);
+    $('#religion').text(religion);
     $('#studentGradeLevel').text(gradeLevel);
     $('#studentCurriculum').text(curriculum);
     $('#studentschoolAttended').text(schoolAttended);
     $('#studentType').text(studentType);
     $('#studentGuardianName').text(guardianName);
     $('#studentGuardianRelationship').text(guardianRelationship); // Ensure this is set correctly
+    $('#status').text(status);
     $('#studentImage').attr('src', image ? image : 'dist/img/default.png');
 });
 

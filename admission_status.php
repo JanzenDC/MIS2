@@ -218,24 +218,62 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
    <!-- Display search results -->
 <?php if ($studentDetails): ?>
-    <div class="mt-4 student-details-card">
-        <h4 class="text-center">Student Details</h4>
-        <ul class="list-group list-group-flush">
-            <li class="list-group-item"><strong>LRN:</strong> <?php echo $studentDetails['lrn']; ?></li>
-            <li class="list-group-item"><strong>Last Name:</strong> <?php echo $studentDetails['last_name']; ?></li>
-            <li class="list-group-item"><strong>First Name:</strong> <?php echo $studentDetails['first_name']; ?></li>
-            <li class="list-group-item"><strong>Middle Name:</strong> <?php echo $studentDetails['middle_name']; ?></li>
-            <li class="list-group-item"><strong>Extension Name:</strong> <?php echo $studentDetails['name_extension']; ?></li>
-            <li class="list-group-item"><strong>Gender:</strong> <?php echo $studentDetails['gender']; ?></li>
-            <li class="list-group-item"><strong>Status:</strong> <?php echo $studentDetails['status']; ?></li>
-            <li class="list-group-item"><strong>Date of Birth:</strong> <?php echo $studentDetails['dob']; ?></li>
-            <li class="list-group-item"><strong>Age:</strong> <?php echo $studentDetails['age']; ?></li>
-            <li class="list-group-item"><strong>Contact Number:</strong> <?php echo $studentDetails['cont_num']; ?></li>
-            <li class="list-group-item"><strong>Religion:</strong> <?php echo $studentDetails['religion']; ?></li>
-            <li class="list-group-item"><strong>Status:</strong> <?php echo $studentDetails['status']; ?></li>
-            <!-- Add other fields from the "learners" table as needed -->
-        </ul>
+  <div style="margin-top: 16px; border: 1px solid #ddd; border-radius: 8px; padding: 16px; background-color: #f9f9f9;">
+    <h4 style="text-align: center; font-size: 2.25rem; font-weight: bold;">Student Details</h4>
+
+    <!-- First Group: Profile and Basic Info -->
+    <div style="margin-bottom: 16px; display: flex; flex-wrap: wrap;">
+        <div style="flex: 1 1 50%; padding-right: 16px; padding-bottom: 16px;">
+            <ul style="list-style-type: none; padding: 0;">
+                <li style="border-bottom: 1px solid #ddd; padding: 8px 0;">
+                    <strong>Profile:</strong> 
+                    <div style="display: flex; justify-content: center; align-items: center; padding: 8px;">
+                        <img src="<?php echo $studentDetails['image_file']; ?>" alt="" style="width: 120px; height: 120px; border-radius: 50%; border: 4px solid #007bff; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <div style="flex: 1 1 50%; padding-left: 16px; padding-bottom: 16px;">
+            <ul style="list-style-type: none; padding: 0;">
+                <li style="border-bottom: 1px solid #ddd; padding: 8px 0;"><strong>LRN:</strong> <?php echo $studentDetails['lrn']; ?></li>
+                <li style="border-bottom: 1px solid #ddd; padding: 8px 0;"><strong>Last Name:</strong> <?php echo $studentDetails['last_name']; ?></li>
+                <li style="border-bottom: 1px solid #ddd; padding: 8px 0;"><strong>First Name:</strong> <?php echo $studentDetails['first_name']; ?></li>
+                <li style="border-bottom: 1px solid #ddd; padding: 8px 0;"><strong>Middle Name:</strong> <?php echo $studentDetails['middle_name']; ?></li>
+                <li style="border-bottom: 1px solid #ddd; padding: 8px 0;"><strong>Extension Name:</strong> <?php echo $studentDetails['name_extension']; ?></li>
+                <li style="border-bottom: 1px solid #ddd; padding: 8px 0;"><strong>Gender:</strong> <?php echo $studentDetails['gender']; ?></li>
+                <li style="border-bottom: 1px solid #ddd; padding: 8px 0;"><strong>Status:</strong> <?php echo $studentDetails['status']; ?></li>
+            </ul>
+        </div>
     </div>
+
+    <!-- Second Group: Birth, Contact, and Other Details -->
+    <div style="display: flex; flex-wrap: wrap;">
+        <div style="flex: 1 1 50%; padding-right: 16px; padding-bottom: 16px;">
+            <ul style="list-style-type: none; padding: 0;">
+                <li style="border-bottom: 1px solid #ddd; padding: 8px 0;"><strong>Date of Birth:</strong> <?php echo $studentDetails['dob']; ?></li>
+                <li style="border-bottom: 1px solid #ddd; padding: 8px 0;"><strong>Age:</strong> <?php echo $studentDetails['age']; ?></li>
+                <li style="border-bottom: 1px solid #ddd; padding: 8px 0;"><strong>Address:</strong> <?php echo $studentDetails['address']; ?></li>
+                <li style="border-bottom: 1px solid #ddd; padding: 8px 0;"><strong>Contact Number:</strong> <?php echo $studentDetails['cont_num']; ?></li>
+                <li style="border-bottom: 1px solid #ddd; padding: 8px 0;"><strong>Religion:</strong> <?php echo $studentDetails['religion']; ?></li>
+            </ul>
+        </div>
+        <div style="flex: 1 1 50%; padding-left: 16px; padding-bottom: 16px;">
+            <ul style="list-style-type: none; padding: 0;">
+                <li style="border-bottom: 1px solid #ddd; padding: 8px 0;"><strong>Student Type:</strong> <?php echo $studentDetails['student_type']; ?></li>
+                <li style="border-bottom: 1px solid #ddd; padding: 8px 0;"><strong>School Last Attended:</strong> <?php echo $studentDetails['school_attended']; ?></li>
+                <li style="border-bottom: 1px solid #ddd; padding: 8px 0;"><strong>Grade Level:</strong> <?php echo $studentDetails['grade_level']; ?></li>
+                <li style="border-bottom: 1px solid #ddd; padding: 8px 0;"><strong>Curriculum:</strong> <?php echo $studentDetails['curriculum']; ?></li>
+                <li style="border-bottom: 1px solid #ddd; padding: 8px 0;"><strong>Guardian:</strong> <?php echo $studentDetails['guardian_name']; ?></li>
+                <li style="border-bottom: 1px solid #ddd; padding: 8px 0;"><strong>Guardian Relationship:</strong> <?php echo $studentDetails['guardian_relationship']; ?></li>
+            </ul>
+        </div>
+    </div>
+    <div style="width: 100%; height: 500px; border: 2px solid;">
+      <iframe src="<?php echo $studentDetails['sf10_file']; ?>" style="width: 100%; height: 500px; " frameborder="0"></iframe>
+    </div>
+</div>
+
+
 <?php elseif ($error): ?>
     <div class="alert alert-danger mt-4">
         <?php echo $error; ?>
