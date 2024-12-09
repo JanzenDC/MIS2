@@ -280,74 +280,93 @@ $conn->close();
         </section>
 
         <section class="content">
-            <div class="row">
-                <div class="col-xs-4">
-                    <div class="box box-primary">
-                        <div class="box-header with-border">
-                            <h3 class="box-title">New User</h3>
-                        </div>
-                        <form role="form" method="POST" action="">
-                            <div class="box-body">
-                                <div class="form-group">
-                                    <label for="email">Email</label>
-                                    <input type="email" class="form-control" id="email" name="email" placeholder="Enter Email" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="password">Password</label>
-                                    <input type="password" class="form-control" id="password" name="password" placeholder="Enter Password" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="role">Role</label>
-                                    <select class="form-control" id="role" name="role" required>
-                                        <option value="admin">Admin</option>
-                                        <option value="ict_faculty">ICT Faculty</option>
-                                        <option value="teacher">Teacher</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="box-footer">
-                                <button type="submit" class="btn btn-primary">Add User</button>
-                            </div>
-                        </form>
-                    </div>
+    <div class="row">
+        <!-- First Column for Adding User -->
+        <div class="col-md-6 col-xs-12">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">New User</h3>
                 </div>
-
-                <div class="col-xs-8">
-                    <div class="box box-primary">
-                        <div class="box-header">
-                            <h3 class="box-title">List of Users</h3>
+                <form role="form" method="POST" action="">
+                    <div class="box-body">
+                        <div class="form-group">
+                            <label for="name">Full Name</label>
+                            <input type="text" class="form-control" id="name" name="name" placeholder="Enter Name" required>
                         </div>
-                        <div class="box-body">
-                            <table id="userTable" class="table table-bordered table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Email</th>
-                                        <th>Role</th>
-                                        <th>Created At</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($users as $user): ?>
-                                    <tr>
-                                        <td><?= htmlspecialchars($user['id']) ?></td>
-                                        <td><?= htmlspecialchars($user['email']) ?></td>
-                                        <td><?= htmlspecialchars($user['role']) ?></td>
-                                        <td><?= htmlspecialchars($user['created_at']) ?></td>
-                                        <td>
-    <button class="btn btn-warning btn-xs" data-toggle="modal" data-target="#editModal" onclick="loadEditUser(<?= $user['id'] ?>)">Edit</button>
-    <button class="btn btn-danger btn-xs" data-toggle="modal" data-target="#deleteModal" onclick="setDeleteUserId(<?= $user['id'] ?>)">Delete</button>
-</td>
-                                    </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" placeholder="Enter Email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Enter Password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="role">Role</label>
+                            <select class="form-control" id="role" name="role" required onchange="toggleGradeDropdown()">
+                                <option value="admin">Admin</option>
+                                <option value="ict_faculty">ICT Faculty</option>
+                                <option value="teacher">Teacher</option>
+                            </select>
+                        </div>
+
+                        <!-- Grade Dropdown (Initially hidden) -->
+                        <div id="grade-dropdown" class="form-group" style="display: none;">
+                            <label for="grade">Select Grade (7-12)</label>
+                            <select class="form-control" id="grade" name="grade">
+                                <option value="7">Grade 7</option>
+                                <option value="8">Grade 8</option>
+                                <option value="9">Grade 9</option>
+                                <option value="10">Grade 10</option>
+                                <option value="11">Grade 11</option>
+                                <option value="12">Grade 12</option>
+                            </select>
                         </div>
                     </div>
+                    <div class="box-footer">
+                        <button type="submit" class="btn btn-primary">Add User</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Second Column for List of Users -->
+        <div class="col-md-6 col-xs-12">
+            <div class="box box-primary">
+                <div class="box-header">
+                    <h3 class="box-title">List of Users</h3>
+                </div>
+                <div class="box-body">
+                    <table id="userTable" class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Created At</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($users as $user): ?>
+                            <tr>
+                                <td><?= htmlspecialchars($user['id']) ?></td>
+                                <td><?= htmlspecialchars($user['email']) ?></td>
+                                <td><?= htmlspecialchars($user['role']) ?></td>
+                                <td><?= htmlspecialchars($user['created_at']) ?></td>
+                                <td>
+                                    <button class="btn btn-warning btn-xs" data-toggle="modal" data-target="#editModal" onclick="loadEditUser(<?= $user['id'] ?>)">Edit</button>
+                                    <button class="btn btn-danger btn-xs" data-toggle="modal" data-target="#deleteModal" onclick="setDeleteUserId(<?= $user['id'] ?>)">Delete</button>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-        </section>
+        </div>
+    </div>
+</section>
     </div>
 
 
@@ -475,6 +494,19 @@ function confirmLogout() {
 $('.sidebar-toggle').on('click', function () {
     $('body').toggleClass('sidebar-collapse'); // Toggle the collapse class
 });
+
+
+    function toggleGradeDropdown() {
+        var role = document.getElementById("role").value;
+        var gradeDropdown = document.getElementById("grade-dropdown");
+
+        // Show grade dropdown if teacher is selected
+        if (role === "teacher") {
+            gradeDropdown.style.display = "block";
+        } else {
+            gradeDropdown.style.display = "none";
+        }
+    }
 </script>
 </body>
 </html>
