@@ -85,24 +85,6 @@ $conn->close();
 </head>
 <style>
 
-.content-wrapper {
-  position: relative;
-  z-index: 1; /* Ensures that the content is on top of the watermark */
-}
-
-.content-wrapper::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: url('dist/img/deped_logo.png') no-repeat center center;
-  background-size: 500px 500px; /* Adjust watermark size */
-  opacity: 0.1; /* Make it subtle */
-  z-index: -1; /* Push the watermark behind the content */
-  pointer-events: none; /* Ensure the watermark doesn’t interfere with interactions */
-}
 /* Default Logo Style */
 .sidebar-logo img {
   display: block;
@@ -113,6 +95,9 @@ $conn->close();
 .sidebar-collapse .sidebar-logo img {
   display: none; /* Hide the logo when collapsed */
 }
+
+/* Optional custom styles for centering */
+
 
 </style>
 <body class="hold-transition skin-green sidebar-mini">
@@ -272,40 +257,83 @@ $conn->close();
     <!-- Main content -->
 
 
-    <section class="content">
-    <div class="row">
-        <div class="col-lg-12">
-            <div class="panel panel-success">
-                <div class="panel-heading text-center">
-                </div>
-                <div class="panel-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <img src="dist/img/macayo_logo.png" alt="Macayo Integrated School" class="img-responsive img-thumbnail center-block">
-                        </div>
-                        <div class="col-md-8">
-                            <p class="lead">Macayo Integrated School is a thriving educational institution, dedicated to providing high-quality education to its learners. With a strong commitment to academic excellence and student well-being, we aim to nurture the talents and skills of each learner.</p>
-                            <hr>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <p><b>Total Learners:</b> 340</p>
-                                    <p><b>Total Faculty Members:</b> 21</p>
-                                </div>
-                                <div class="col-md-6">
-                                    <p><b>Total Subjects (JHS + SHS):</b> 50</p>
-                                    <p><b>Total Users (System):</b> 25</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="panel-footer text-center">
-                    <small>Empowering future generations through quality education.</small>
-                </div>
-            </div>
+    <section style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 30px 0;">
+      <div style="max-width: 1200px; margin: auto; background: #fff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+        <div style="background-color: #28a745; color: white; text-align: center; padding: 20px 10px; border-radius: 8px 8px 0 0;">
+          <h2 style="margin: 0; font-size: 28px; font-weight: bold;">Macayo Integrated School</h2>
+          <p style="margin: 5px 0 0;">Empowering future generations through quality education</p>
         </div>
-    </div>
-</section>
+        <div style="padding: 20px 30px;">
+          <!-- Logo and Introduction -->
+          <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 20px;">
+            <div style="flex: 1; text-align: center;">
+              <img src="dist/img/macayo_logo.png" alt="Macayo Integrated School" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+            </div>
+            <div style="flex: 2;">
+              <p style="font-size: 18px; line-height: 1.6; margin: 0;">
+                Macayo Integrated School is a thriving educational institution, dedicated to providing high-quality education to its learners. With a strong commitment to academic excellence and student well-being, we aim to nurture the talents and skills of each learner.
+              </p>
+            </div>
+          </div>
+
+          <!-- Vision, Mission, and Core Values Section -->
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h3 style="font-size: 24px; font-weight: bold; margin-bottom: 20px;">DEPED Vision, Mission, and Core Values</h3>
+          </div>
+          <div style="text-align: center; margin-bottom: 20px;">
+            <h4 style="font-size: 20px; font-weight: bold; margin-bottom: 10px;">Vision</h4>
+            <p style="font-size: 16px; line-height: 1.6; margin: 0 auto; max-width: 800px; text-align: justify;">
+              We dream of Filipinos who passionately love their country and whose values and competencies enable them to realize their full potential and contribute meaningfully to building the nation. <br><br>
+              As a learner-centered public institution, the Department of Education continuously improves itself to better serve its stakeholders.
+            </p>
+          </div>
+          <div style="text-align: center; margin-bottom: 20px;">
+            <h4 style="font-size: 20px; font-weight: bold; margin-bottom: 10px;">Mission</h4>
+            <p style="font-size: 16px; line-height: 1.6; margin: 0 auto; max-width: 800px; text-align: justify;">
+              To protect and promote the right of every Filipino to quality, equitable, culture-based, and complete basic education where:
+            </p>
+            <ul style="list-style: none; padding: 0; margin: 20px auto 0; max-width: 800px; text-align: left;">
+              <li style="margin-bottom: 10px;"> Students learn in a child-friendly, gender-sensitive, safe, and motivating environment.</li>
+              <li style="margin-bottom: 10px;"> Teachers facilitate learning and constantly nurture every learner.</li>
+              <li style="margin-bottom: 10px;"> Administrators and staff ensure an enabling and supportive environment for effective learning to happen.</li>
+              <li> Family, community, and other stakeholders are actively engaged.</li>
+            </ul>
+          </div>
+          <div style="text-align: center; margin-bottom: 20px;">
+            <h4 style="font-size: 20px; font-weight: bold; margin-bottom: 10px;">Core Values</h4>
+            <ul style="list-style: none; padding: 0; margin: 0 auto; max-width: 800px; text-align: center;">
+              <li style="margin-bottom: 10px;"> Maka-Diyos</li>
+              <li style="margin-bottom: 10px;"> Maka-tao</li>
+              <li style="margin-bottom: 10px;"> Makakalikasan</li>
+              <li> Makabansa</li>
+            </ul>
+          </div>
+
+          <!-- Quick Facts Section -->
+          <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-bottom: 30px;">
+            <div style="flex: 1; min-width: 250px; text-align: center; background: #f4f4f4; padding: 15px; border-radius: 8px;">
+              <h5 style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">Total Learners</h5>
+              <p style="font-size: 20px; font-weight: bold; color: #28a745;">340</p>
+            </div>
+            <div style="flex: 1; min-width: 250px; text-align: center; background: #f4f4f4; padding: 15px; border-radius: 8px;">
+              <h5 style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">Total Faculty Members</h5>
+              <p style="font-size: 20px; font-weight: bold; color: #28a745;">21</p>
+            </div>
+            <div style="flex: 1; min-width: 250px; text-align: center; background: #f4f4f4; padding: 15px; border-radius: 8px;">
+              <h5 style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">Total Subjects (JHS + SHS)</h5>
+              <p style="font-size: 20px; font-weight: bold; color: #28a745;">50</p>
+            </div>
+            <div style="flex: 1; min-width: 250px; text-align: center; background: #f4f4f4; padding: 15px; border-radius: 8px;">
+              <h5 style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">Total Users (System)</h5>
+              <p style="font-size: 20px; font-weight: bold; color: #28a745;">25</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+
 
 
     <!-- /.content -->

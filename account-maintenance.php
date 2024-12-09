@@ -31,9 +31,11 @@ $stmt->close(); // Close the statement
 // Handle form submission for adding a new user
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Get the input values
+    $full_name = trim($_POST['name']);
     $email = trim($_POST['email']);
     $password = trim($_POST['password']);
     $role = $_POST['role'];
+    $assigned_to = $_POST['grade'];
 
     // Validate input
     if (empty($email) || empty($password) || empty($role)) {
@@ -53,14 +55,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
             // Prepare SQL statement
-            $stmt = $conn->prepare("INSERT INTO users (email, password, role) VALUES (?, ?, ?)");
-            $stmt->bind_param("sss", $email, $hashed_password, $role);
+            $stmt = $conn->prepare("INSERT INTO users (full_name, email, password, role, assigned_to) VALUES (?, ?, ?, ?, ?)");
+            $stmt->bind_param("sssss", $full_name, $email, $hashed_password, $role, $assigned_to);
 
             if ($stmt->execute()) {
-                $success_message = "User added successfully.";
+                echo "<script type='text/javascript'>
+                        alert('User added successfully.');
+                        window.location.href = 'account-maintenance.php';
+                      </script>";
+                exit;
             } else {
-                $error_message = "Error adding user: " . $conn->error;
+                echo "<script type='text/javascript'>
+                        alert('Error adding user: " . $conn->error . "');
+                        window.location.href = 'account-maintenance.php';
+                      </script>";
+                exit;
             }
+            
+            
         }
 
         $stmt->close(); // Close the statement
@@ -314,12 +326,12 @@ $conn->close();
                         <div id="grade-dropdown" class="form-group" style="display: none;">
                             <label for="grade">Select Grade (7-12)</label>
                             <select class="form-control" id="grade" name="grade">
-                                <option value="7">Grade 7</option>
-                                <option value="8">Grade 8</option>
-                                <option value="9">Grade 9</option>
-                                <option value="10">Grade 10</option>
-                                <option value="11">Grade 11</option>
-                                <option value="12">Grade 12</option>
+                                <option value="Grade7">Grade 7</option>
+                                <option value="Grade8">Grade 8</option>
+                                <option value="Grade9">Grade 9</option>
+                                <option value="Grade10">Grade 10</option>
+                                <option value="Grade11">Grade 11</option>
+                                <option value="Grade12">Grade 12</option>
                             </select>
                         </div>
                     </div>
@@ -351,6 +363,7 @@ $conn->close();
                             <?php foreach ($users as $user): ?>
                             <tr>
                                 <td><?= htmlspecialchars($user['id']) ?></td>
+                                <td><?= htmlspecialchars($user['full_name']) ?></td>
                                 <td><?= htmlspecialchars($user['email']) ?></td>
                                 <td><?= htmlspecialchars($user['role']) ?></td>
                                 <td><?= htmlspecialchars($user['created_at']) ?></td>
@@ -383,6 +396,10 @@ $conn->close();
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="editUserId" name="id" value="">
+                    <div class="form-group">
+                        <label for="editname">Full Name</label>
+                        <input type="text" class="form-control" id="editname" name="name" placeholder="Enter Name" required>
+                    </div>
                     <div class="form-group">
                         <label for="editEmail">Email</label>
                         <input type="email" class="form-control" id="editEmail" name="email" placeholder="Enter Email" required>

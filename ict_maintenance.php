@@ -75,6 +75,63 @@ if ($user) {
 } else {
     $userRole = "No Role"; // Default role if not found
 }
+
+$query = "SELECT id, description FROM events ORDER BY id";
+$result = mysqli_query($conn, $query);
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  if (isset($_POST['deleteEvent'])) {
+      $eventId = (int) $_POST['eventId'];
+      if ($eventId > 0) {
+          $query = "DELETE FROM events WHERE id = $eventId";
+          if (mysqli_query($conn, $query)) {
+              $_SESSION['alert'] = '<div class="alert alert-success">Event successfully deleted!</div>';
+          } else {
+              $_SESSION['alert'] = '<div class="alert alert-danger">Error: ' . mysqli_error($conn) . '</div>';
+          }
+      } else {
+          $_SESSION['alert'] = '<div class="alert alert-warning">Invalid event ID.</div>';
+      }
+      header('Location: ' . $_SERVER['PHP_SELF']);
+      exit;
+  }
+
+  if (isset($_POST['editEvent'])) {
+      $eventId = (int) $_POST['eventId'];
+      $newDescription = mysqli_real_escape_string($conn, $_POST['eventDescription']);
+      if ($eventId > 0 && !empty($newDescription)) {
+          $query = "UPDATE events SET description = '$newDescription' WHERE id = $eventId";
+          if (mysqli_query($conn, $query)) {
+              $_SESSION['alert'] = '<div class="alert alert-success">Event successfully updated!</div>';
+          } else {
+              $_SESSION['alert'] = '<div class="alert alert-danger">Error: ' . mysqli_error($conn) . '</div>';
+          }
+          header('Location: ' . $_SERVER['PHP_SELF']);
+          exit;
+      } else {
+          $_SESSION['alert'] = '<div class="alert alert-warning">Please provide a valid event description.</div>';
+      }
+  }
+
+  if (isset($_POST['eventDescription'])) {
+      if (!empty($_POST['eventDescription'])) {
+          $eventDescription = mysqli_real_escape_string($conn, $_POST['eventDescription']);
+          $query = "INSERT INTO events (description) VALUES ('$eventDescription')";
+
+          if (mysqli_query($conn, $query)) {
+              $_SESSION['alert'] = '<div class="alert alert-success">Event successfully added!</div>';
+              header('Location: ' . $_SERVER['PHP_SELF']);
+              exit;
+          } else {
+              $_SESSION['alert'] = '<div class="alert alert-danger">Error: ' . mysqli_error($conn) . '</div>';
+          }
+      } else {
+          $_SESSION['alert'] = '<div class="alert alert-warning">Please provide an event description.</div>';
+      }
+  }
+}
+
+$alertMessage = isset($_SESSION['alert']) ? $_SESSION['alert'] : '';
+unset($_SESSION['alert']);
 ?>
 <!DOCTYPE html>
 <html>
@@ -463,17 +520,90 @@ if ($user) {
 <!-- Announcements Section -->
 <div class="row">
     <div class="col-lg-12">
-        <div class="box box-info">
+        <div class="box box-info" style="border: 1px solid #3b5998; padding: 20px; border-radius: 8px;">
             <div class="box-header with-border">
-                <h3 class="box-title">Important Events</h3>
+                <h3 class="box-title" style="font-weight: bold; font-size: 20px; color: #3b5998;">Important Events</h3>
             </div>
             <div class="box-body">
-                <ul class="list-group">
-                    <li class="list-group-item">School Open House: September 30, 2024, at 5 PM.</li>
-                    <li class="list-group-item">Parent-Teacher Conference: October 5, 2024, all day.</li>
-                    <li class="list-group-item">Midterm Exams: October 12-16, 2024.</li>
-                    <li class="list-group-item">Thanksgiving Break: November 23-27, 2024.</li>
-                </ul>
+                
+                <!-- Event Form Section -->
+                <?php if ($alertMessage): ?>
+                    <div class="alert alert-info" style="background-color: #e9f7fe; color: #3b5998; border-radius: 8px; padding: 10px;">
+                        <?php echo $alertMessage; ?>
+                    </div>
+                <?php endif; ?>
+
+                <!-- Add Event Form -->
+                <div class="row mb-4">
+                    <div class="col-lg-12">
+                        <div class="box box-info" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
+                            <div class="box-body">
+                                <form method="POST">
+                                    <div class="form-group">
+                                        <label for="eventDescription" style="font-weight: bold; color: #3b5998;">Event Description:</label>
+                                        <textarea class="form-control" id="eventDescription" name="eventDescription" rows="3" required style="border-radius: 8px; padding: 12px; border: 1px solid #ddd; transition: border-color 0.3s ease;"></textarea>
+                                    </div>
+
+                                    <div class="form-group text-right">
+                                        <button type="submit" class="btn" style="background-color: #3b5998; color: white; border-radius: 50px; padding: 8px 20px; font-size: 14px; font-weight: 600; text-transform: uppercase; transition: background-color 0.3s ease;" id="addEventBtn">Add Event</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Event List Section -->
+                <?php if ($result && mysqli_num_rows($result) > 0): ?>
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="list-group" style="padding-left: 0;">
+                                <?php while ($row = mysqli_fetch_assoc($result)): ?>
+                                    <div class="list-group-item" style="background-color: #f7f7f7; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); transition: box-shadow 0.3s ease;">
+                                        <?php
+                                        $eventId = $row['id'];
+                                        $eventDescription = htmlspecialchars($row['description']);
+                                        ?>
+                                        <?php if (isset($_GET['editEvent']) && $_GET['editEvent'] == $eventId): ?>
+                                            <!-- Edit Form for Event -->
+                                            <form method="POST">
+                                                <input type="hidden" name="eventId" value="<?php echo $eventId; ?>" />
+                                                <textarea name="eventDescription" class="form-control" required style="border-radius: 8px; padding: 12px;"><?php echo $eventDescription; ?></textarea>
+                                                <button type="submit" name="editEvent" class="btn" style="background-color: #28a745; color: white; border-radius: 50px; padding: 8px 20px; font-size: 14px; font-weight: 600; text-transform: uppercase; margin-top: 10px;">Save Changes</button>
+                                                <a href="?" class="btn" style="background-color: #6c757d; color: white; border-radius: 50px; padding: 8px 20px; font-size: 14px; font-weight: 600; text-transform: uppercase; margin-top: 10px;">Cancel</a>
+                                            </form>
+                                        <?php else: ?>
+                                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                                <div style="font-weight: bold; font-size: 16px;"><?php echo 'Event ' . $eventId . ': ' . $eventDescription; ?></div>
+                                                <div>
+                                                    <a href="?editEvent=<?php echo $eventId; ?>" class="btn" style="background-color: #17a2b8; color: white; border-radius: 50px; padding: 6px 12px; font-size: 14px;">Edit</a>
+                                                    <form method="POST" style="display:inline;">
+                                                        <input type="hidden" name="eventId" value="<?php echo $eventId; ?>" />
+                                                        <button type="submit" name="deleteEvent" class="btn" style="background-color: #dc3545; color: white; border-radius: 50px; padding: 6px 12px; font-size: 14px;" onclick="return confirm('Are you sure you want to delete this event?')">Delete</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                <?php endwhile; ?>
+                            </div>
+                        </div>
+                    </div>
+                <?php else: ?>
+                    <!-- No Events Available -->
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="box box-warning" style="border-radius: 8px; border: 1px solid #ffc107; padding: 20px;">
+                                <div class="box-header with-border">
+                                    <h3 class="box-title" style="font-weight: bold; color: #ffc107;">No Events Available</h3>
+                                </div>
+                                <div class="box-body">
+                                    <p>No important events have been scheduled.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
