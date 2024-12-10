@@ -1,10 +1,6 @@
 <?php
-session_start(); // Start the session
-
-// Include your database connection file
+session_start(); 
 require 'db_connection.php';
-
-// Check if the user is logged in by checking if user_id exists in session
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php"); // Redirect to login page if not logged in
     exit();
@@ -26,72 +22,31 @@ if ($user) {
     $userRole = "No Role"; // Default role if not found
 }
 
-$stmt->close(); // Close the statement
+$stmt->close();
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $behavior_type = $_POST['behavior_type'];
+    $first_behavior_statement = $_POST['first_behavior_statement'];
+    $second_behavior_statement = $_POST['second_behavior_statement'];
 
-// Handle form submission for adding a new user
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Get the input values
-    $full_name = trim($_POST['name']);
-    $email = trim($_POST['email']);
-    $password = trim($_POST['password']);
-    $role = $_POST['role'];
-    $assigned_to = $_POST['grade'];
+    $check_duplicate = "SELECT * FROM core_values_db WHERE coreName = '$behavior_type'";
+    $result = $conn->query($check_duplicate);
 
-    // Validate input
-    if (empty($email) || empty($password) || empty($role)) {
-        $error_message = "All fields are required.";
+    if ($result->num_rows > 0) {
+        echo "<script>alert('Error: Behavior type already exists'); window.location.href='card-maintenance.php';</script>";
     } else {
-        // Check if the email already exists
-        $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
-        $stmt->bind_param("s", $email);
-        $stmt->execute();
-        $stmt->store_result(); // Store the result for checking if it exists
+        $sql = "INSERT INTO core_values_db (coreName, behaviour_one, behavior_two) 
+                VALUES ('$behavior_type', '$first_behavior_statement', '$second_behavior_statement')";
 
-        if ($stmt->num_rows > 0) {
-            // Email already exists
-            $error_message = "Email already in use. Please choose another one.";
+        if ($conn->query($sql) === TRUE) {
+            echo "<script>alert('New record created successfully'); window.location.href='card-maintenance.php';</script>";
         } else {
-            // Hash the password
-            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-
-            // Prepare SQL statement
-            $stmt = $conn->prepare("INSERT INTO users (full_name, email, password, role, assigned_to) VALUES (?, ?, ?, ?, ?)");
-            $stmt->bind_param("sssss", $full_name, $email, $hashed_password, $role, $assigned_to);
-
-            if ($stmt->execute()) {
-                echo "<script type='text/javascript'>
-                        alert('User added successfully.');
-                        window.location.href = 'account-maintenance.php';
-                      </script>";
-                exit;
-            } else {
-                echo "<script type='text/javascript'>
-                        alert('Error adding user: " . $conn->error . "');
-                        window.location.href = 'account-maintenance.php';
-                      </script>";
-                exit;
-            }
-            
-            
+            echo "<script>alert('Error: " . addslashes($conn->error) . "'); window.location.href='card-maintenance.php';</script>";
         }
-
-        $stmt->close(); // Close the statement
     }
-}
 
-// Retrieve existing users from the database
-$result = $conn->query("SELECT * FROM users");
-$users = [];
-if ($result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        $users[] = $row;
-    }
+    $conn->close();
 }
-
-// Close the connection
-$conn->close();
 ?>
-
 
 
 <!DOCTYPE html>
@@ -274,7 +229,7 @@ $conn->close();
                     <li id="user-maintenance"><a href="account-maintenance.php"><i class="fa fa-user"></i> Account Maintenance</a></li>
                 </ul>
             </li>
-                                <li id="about"><a href="about.php"><i class="fa fa-info-circle"></i> <span>About</span></a></li>
+                <li id="about"><a href="about.php"><i class="fa fa-info-circle"></i> <span>About</span></a></li>
                 <li id="about"><a href="card-maintenance.php"><i class="fa fa-info-circle"></i> <span>Card Maintenance</span></a></li>
 
             </ul>
@@ -284,169 +239,81 @@ $conn->close();
     <div class="content-wrapper">
         <section class="content-header">
             <h1>
-                Account Maintenance
-                <small>Adding User</small>
+                Card Maintenance
+
             </h1>
-            <ol class="breadcrumb">
-                <li><a href="#"><i class="fa fa-dashboard"></i> Account</a></li>
-                <li class="active">Add User</li>
-            </ol>
         </section>
 
         <section class="content">
-    <div class="row">
-        <!-- First Column for Adding User -->
-        <div class="col-md-6 col-xs-12">
-            <div class="box box-primary">
-                <div class="box-header with-border">
-                    <h3 class="box-title">New User</h3>
+            <form method='POST' style="max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 5px; background-color: #f9f9f9;">
+                <div style="margin-bottom: 15px;">
+                    <label for="behavior_type" style="font-weight: bold; display: block; margin-bottom: 5px;">Behavior Type:</label>
+                    <select name="behavior_type" id="behavior_type" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+                        <option value="Maka-Diyos">Maka-Diyos</option>
+                        <option value="Maka-Tao">Maka-Tao</option>
+                        <option value="Maka-Kalikasan">Maka-Kalikasan</option>
+                        <option value="Maka-Bansa">Maka-Bansa</option>
+                    </select>
                 </div>
-                <form role="form" method="POST" action="">
-                    <div class="box-body">
-                        <div class="form-group">
-                            <label for="name">Full Name</label>
-                            <input type="text" class="form-control" id="name" name="name" placeholder="Enter Name" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="email">Email</label>
-                            <input type="email" class="form-control" id="email" name="email" placeholder="Enter Email" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="password">Password</label>
-                            <input type="password" class="form-control" id="password" name="password" placeholder="Enter Password" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="role">Role</label>
-                            <select class="form-control" id="role" name="role" required onchange="toggleGradeDropdown()">
-                                <option value="admin">Admin</option>
-                                <option value="ict_faculty">ICT Faculty</option>
-                                <option value="teacher">Teacher</option>
-                            </select>
-                        </div>
-
-                        <!-- Grade Dropdown (Initially hidden) -->
-                        <div id="grade-dropdown" class="form-group" style="display: none;">
-                            <label for="grade">Select Grade (7-12)</label>
-                            <select class="form-control" id="grade" name="grade">
-                                <option value="Grade7">Grade 7</option>
-                                <option value="Grade8">Grade 8</option>
-                                <option value="Grade9">Grade 9</option>
-                                <option value="Grade10">Grade 10</option>
-                                <option value="Grade11">Grade 11</option>
-                                <option value="Grade12">Grade 12</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="box-footer">
-                        <button type="submit" class="btn btn-primary">Add User</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Second Column for List of Users -->
-        <div class="col-md-6 col-xs-12">
-            <div class="box box-primary">
-                <div class="box-header">
-                    <h3 class="box-title">List of Users</h3>
+                
+                <div style="margin-bottom: 15px;">
+                    <label for="first_behavior_statement" style="font-weight: bold; display: block; margin-bottom: 5px;">First Behavior Statement:</label>
+                    <textarea name="first_behavior_statement" id="first_behavior_statement" placeholder="Enter the first behavior statement here..." style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; height: 100px;"></textarea>
                 </div>
-                <div class="box-body">
-                    <table id="userTable" class="table table-bordered table-hover">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Email</th>
-                                <th>Role</th>
-                                <th>Created At</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($users as $user): ?>
-                            <tr>
-                                <td><?= htmlspecialchars($user['id']) ?></td>
-                                <td><?= htmlspecialchars($user['full_name']) ?></td>
-                                <td><?= htmlspecialchars($user['email']) ?></td>
-                                <td><?= htmlspecialchars($user['role']) ?></td>
-                                <td><?= htmlspecialchars($user['created_at']) ?></td>
-                                <td>
-                                    <button class="btn btn-warning btn-xs" data-toggle="modal" data-target="#editModal" onclick="loadEditUser(<?= $user['id'] ?>)">Edit</button>
-                                    <button class="btn btn-danger btn-xs" data-toggle="modal" data-target="#deleteModal" onclick="setDeleteUserId(<?= $user['id'] ?>)">Delete</button>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                
+                <div style="margin-bottom: 15px;">
+                    <label for="second_behavior_statement" style="font-weight: bold; display: block; margin-bottom: 5px;">Second Behavior Statement:</label>
+                    <textarea name="second_behavior_statement" id="second_behavior_statement" placeholder="Enter the second behavior statement here..." style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; height: 100px;"></textarea>
                 </div>
-            </div>
-        </div>
-    </div>
-</section>
-    </div>
-
-
-    <!-- Edit User Modal -->
-<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <form method="POST" action="edit_user.php">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editModalLabel">Edit User</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" id="editUserId" name="id" value="">
-                    <div class="form-group">
-                        <label for="editname">Full Name</label>
-                        <input type="text" class="form-control" id="editname" name="name" placeholder="Enter Name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editEmail">Email</label>
-                        <input type="email" class="form-control" id="editEmail" name="email" placeholder="Enter Email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editRole">Role</label>
-                        <select class="form-control" id="editRole" name="role" required>
-                            <option value="admin">Admin</option>
-                            <option value="ict_faculty">ICT Faculty</option>
-                            <option value="teacher">Teacher</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary">Save changes</button>
-                </div>
+                
+                <input type="submit" value="Submit" style="background-color: #4CAF50; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer;">
             </form>
-        </div>
-    </div>
-</div>
+            
+            <div class="fetch-section" style="margin-top: 20px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background-color: #f2f2f2;">
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Core Name</th>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Behavior 1</th>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Behavior 2</th>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        // Fetch data from database
+                        $fetch_query = "SELECT * FROM core_values_db";
+                        $result = $conn->query($fetch_query);
 
-<!-- Delete User Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <form method="POST" action="delete_user.php">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="deleteModalLabel">Delete User</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" id="deleteUserId" name="id" value="">
-                    <p>Are you sure you want to delete this user?</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger">Delete</button>
-                </div>
-            </form>
-        </div>
+                        if ($result->num_rows > 0) {
+                            while ($row = $result->fetch_assoc()) {
+                                echo "<tr>";
+                                echo "<td style='border: 1px solid #ddd; padding: 8px;'>" . htmlspecialchars($row['coreName']) . "</td>";
+                                echo "<td style='border: 1px solid #ddd; padding: 8px;'>" . htmlspecialchars($row['behaviour_one']) . "</td>";
+                                echo "<td style='border: 1px solid #ddd; padding: 8px;'>" . htmlspecialchars($row['behavior_two']) . "</td>";
+                                echo "<td style='border: 1px solid #ddd; padding: 8px;'>
+                                        <form method='POST' action='process_edit.php' style='display:inline;'>
+                                            <input type='hidden' name='id' value='" . $row['coreID'] . "'>
+                                            <button type='submit' style='background:none; border:none; color:blue; cursor:pointer;'>Edit</button>
+                                        </form>
+                                        <form method='POST' action='process_delete.php' style='display:inline;' onsubmit='return confirm(\"Are you sure you want to delete this record?\");'>
+                                            <input type='hidden' name='id' value='" . $row['coreID'] . "'>
+                                            <button type='submit' style='background:none; border:none; color:red; cursor:pointer;'>Delete</button>
+                                        </form>
+                                    </td>";
+                                echo "</tr>";
+                            }
+                        } else {
+                            echo "<tr><td colspan='4' style='text-align: center; padding: 10px;'>No records found</td></tr>";
+                        }
+                        ?>
+                    </tbody>
+                </table>
+            </div>
+        </section>
     </div>
-</div>
+
+
 
 
     <footer class="main-footer">

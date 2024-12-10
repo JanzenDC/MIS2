@@ -330,7 +330,9 @@ unset($_SESSION['alert']);
                     <li id="user-maintenance"><a href="account-maintenance.php"><i class="fa fa-user"></i> Account Maintenance</a></li>
                 </ul>
             </li>
-            <li id="about"><a href="about.php"><i class="fa fa-info-circle"></i> <span>About</span></a></li>
+                            <li id="about"><a href="about.php"><i class="fa fa-info-circle"></i> <span>About</span></a></li>
+                <li id="about"><a href="card-maintenance.php"><i class="fa fa-info-circle"></i> <span>Card Maintenance</span></a></li>
+
         </ul>
         
     </section>
