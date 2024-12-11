@@ -84,35 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
 
     $stmt->close();
 }
-$students = [];
-$assigned_grades = [];
 
-// Split the assigned_to string by commas
-$grades = explode(',', $assigned_to);
-
-// Loop through each grade and extract the numeric part
-foreach ($grades as $grade) {
-    // Use regex to extract the number from the string
-    if (preg_match('/\d+/', $grade, $matches)) {
-        $assigned_grades[] = (int)$matches[0]; // Convert to integer and add to the array
-    }
-}// Assuming assigned_to is a comma-separated string
-
-if (!empty($assigned_grades)) {
-    $placeholders = implode(',', array_fill(0, count($assigned_grades), '?'));
-    $query = "SELECT * FROM learners WHERE grade_level IN ($placeholders)";
-    $stmt = $conn->prepare($query);
-    
-    $types = str_repeat('i', count($assigned_grades));
-    $stmt->bind_param($types, ...$assigned_grades);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    while ($row = $result->fetch_assoc()) {
-        $students[] = $row;
-    }
-    $stmt->close();
-}
 // Fetch existing learners
 $learners = [];
 $result = $conn->query("SELECT * FROM learners WHERE grade_level = '7' AND status = 'Approved'");
@@ -230,7 +202,7 @@ $conn->close();
   <header class="main-header">
     <a href="./" class="logo">
       <span class="logo-mini"><b>MIS</b></span>
-      <span class="logo-lg"><b>Teacher</b> Dashboard</span>
+      <span class="logo-lg"><b>GRADE 7</b> Students</span>
     </a>
     <nav class="navbar navbar-static-top" role="navigation">
         <span class="sr-only">Toggle navigation</span>
@@ -264,8 +236,9 @@ $conn->close();
                 <img id="sidebar-logo" src="dist/img/macayo_logo.png" alt="DepEd Logo" style="max-width: 100px; margin-left: 50px; transition: all 0.9s ease;">
             </div>
             <ul class="sidebar-menu" data-widget="tree">
-            <li id="dashboard"><a href="teacher_dashboard.php"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a></li>
-            <li class="treeview">
+                                <li id="dashboard"><a href="teacher_dashboard.php"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a></li>
+
+                <li class="treeview">
                     <a href="#">
                         <i class="fa fa-folder"></i> <span>School Forms</span>
                         <span class="pull-right-container">
@@ -315,48 +288,20 @@ $conn->close();
         </section>
     </aside>
 
-    <div class="content-wrapper" style="font-family: Arial, sans-serif; margin: 20px;">
-        <section class="content" style="margin-top: 30px; max-width: 800px; margin: auto; padding: 20px; background-color: #f9f9f9; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
-            <h2 style="text-align: center; color: #333; margin-bottom: 20px;">Students Assigned to You</h2>
-            <div class="card" style="margin-bottom: 20px; background-color: #ffffff; border: 1px solid #ddd; border-radius: 5px; padding: 15px;">
-                <div class="card-header" style="text-align: center;">
-                    <h3 style="color: #555;">Total Students: <?= count($students) ?></h3>
-                </div>
-            </div>
-
-            <?php if (!empty($students)): ?>
-                <table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px;">
-                    <thead style="background-color: #f4f4f4; color: #333;">
-                        <tr>
-                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">LRN</th>
-                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">First Name</th>
-                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Last Name</th>
-                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">DOB</th>
-                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Gender</th>
-                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Grade Level</th>
-                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($students as $student): ?>
-                            <tr>
-                                <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['lrn']) ?></td>
-                                <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['first_name']) ?></td>
-                                <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['last_name']) ?></td>
-                                <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['dob']) ?></td>
-                                <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['gender']) ?></td>
-                                <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['grade_level']) ?></td>
-                                <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['status']) ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            <?php else: ?>
-                <p style="text-align: center; color: #888; font-size: 16px; margin-top: 20px;">No students assigned to you.</p>
-            <?php endif; ?>
-        </section>
-    </div>
-
+  <div class="content-wrapper">
+    <section class="content-header">
+      <h1>MACAYO INTEGRATED SCHOOL <small> GRADE 7 Students</small></h1>
+      <ol class="breadcrumb">
+        <li><a href="#"><i class="fa fa-dashboard"></i> Student</a></li>
+        <li class="active">GRADE 7 Students</li>
+      </ol>
+    </section>
+<!-- Trigger Button -->
+<!-- Trigger Button -->
+<br>
+<div class="text-center">
+  <h2>ACADEMIC RECORDS</h2>
+</div>
 
     
 
@@ -371,7 +316,86 @@ $conn->close();
 </script>
 
 
+<section class="content">
+            <div class="row">
+                <div class="col-xs-12 ">
+                    <div class="alert alert-success alert-dismissible" style="display: none;" id="truemsg">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h4><i class="icon fa fa-check"></i> Success!</h4>
+                        New Subject Successfully added
+                    </div>
 
+                    <div class="col-xs-12">
+                    <div class="box box-primary">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">All Students</h3>
+                        </div>
+                        <div class="box-body">
+                            <table id="example1" class="table table-bordered table-striped">
+                                <thead>
+    <tr>
+        <th class="text-center">#</th>
+        <th class="text-center">1x1 Picture</th>
+        <th class="text-center">LRN</th>
+        <th class="text-center">Full Name</th>
+        <th class="text-center">Date of Birth</th>
+        <th class="text-center">Gender</th>
+        <th class="text-center">Type of Learner</th>
+        <th class="text-center">Elementary School Attended</th>
+        <th class="text-center">Curriculum</th>
+        <th class="text-center">SF10</th>
+        <th class="text-center">Status</th>
+        <th class="text-center">Action</th>
+    </tr>
+</thead>
+<tbody>
+        <?php foreach ($learners as $index => $learner): ?>
+            <tr>
+                <td class="text-center"><?php echo ($index + 1); ?></td>
+                <td class="text-center">
+                    <?php if (!empty($learner['image_file'])): ?>
+                        <img src="<?php echo $learner['image_file']; ?>" alt="1x1 Picture" style="width: 50px; height: 50px; object-fit: cover;">
+                    <?php else: ?>
+                        No image found
+                    <?php endif; ?>
+                </td>
+                <td class="text-center"><?php echo $learner['lrn']; ?></td>
+                <td class="text-center"><?php echo $learner['first_name'] . ' ' . $learner['last_name']; ?></td>
+                <td class="text-center"><?php echo $learner['dob']; ?></td>
+                <td class="text-center"><?php echo $learner['gender']; ?></td>
+                <td class="text-center"><?php echo $learner['student_type']; ?></td>
+                <td class="text-center">
+    <?php echo !empty($learner['other_school']) ? $learner['other_school'] : $learner['school_attended']; ?>
+</td>
+                <td class="text-center"><?php echo $learner['curriculum']; ?></td>
+                <td class="text-center">
+                    <?php if (!empty($learner['sf10_file'])): ?>
+                        <a href="<?php echo $learner['sf10_file']; ?>" target="_blank">View</a>
+                    <?php else: ?>
+                        No SF10 file found
+                    <?php endif; ?>
+                </td>
+                <td class="text-center"><?php echo $learner['status']; ?></td>
+                <td class="text-center">
+                <a href="view_teacher_record.php?lrn=<?php echo $learner['lrn']; ?>" class="btn btn-primary">View Records</a>
+            </td>
+                
+
+
+            </tr>
+        <?php endforeach; ?>
+    </tbody>
+
+</table>
+
+                                <tbody>
+                                    <!-- Populate with subjects from database -->
+                                </tbody>
+                            </table>
+                    </div>
+                </div>
+            </div>
+        </section>
 
     
   </div>

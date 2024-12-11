@@ -301,7 +301,149 @@ $conn->close();
                     <li id="user-maintenance"><a href="account-maintenance.php"><i class="fa fa-user"></i> Account Maintenance</a></li>
                 </ul>
             </li>
+            <li class="treeview">
+                <a href="#">
+                    <i class="fa fa-folder"></i> 
+                    <span>School Forms</span>
+                    <span class="pull-right-container">
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </span>
+                </a>
+                <ul class="treeview-menu">
+                    <li class="treeview">
+                        <a href="#">
+                            <i class="fa fa-file-text"></i> 
+                            <span>Academic Records</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li class="treeview">
+                                <a href="#">
+                                    <i class="fa fa-cogs"></i> 
+                                    <span>Junior HS Student</span>
+                                    <span class="pull-right-container">
+                                        <i class="fa fa-angle-left pull-right"></i>
+                                    </span>
+                                </a>
+                                <ul class="treeview-menu">
+                                    <li id="academic-grade7">
+                                        <a href="admin_record_grade7.php">
+                                            <i class="fa fa-user"></i> Grade 7
+                                        </a>
+                                    </li>
+                                    <li id="academic-grade8">
+                                        <a href="admin_record_grade8.php">
+                                            <i class="fa fa-user"></i> Grade 8
+                                        </a>
+                                    </li>
+                                    <li id="academic-grade9">
+                                        <a href="admin_record_grade9.php">
+                                            <i class="fa fa-user"></i> Grade 9
+                                        </a>
+                                    </li>
+                                    <li id="academic-grade10">
+                                        <a href="admin_record_grade10.php">
+                                            <i class="fa fa-user"></i> Grade 10
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+
+                            <li class="treeview">
+                                <a href="#">
+                                    <i class="fa fa-cogs"></i> 
+                                    <span>Senior HS Student</span>
+                                    <span class="pull-right-container">
+                                        <i class="fa fa-angle-left pull-right"></i>
+                                    </span>
+                                </a>
+                                <ul class="treeview-menu">
+                                    <li id="academic-grade11">
+                                        <a href="admin_record_grade11.php">
+                                            <i class="fa fa-user"></i> Grade 11
+                                        </a>
+                                    </li>
+                                    <li id="academic-grade12">
+                                        <a href="admin_record_grade12.php">
+                                             <i class="fa fa-user"></i> Grade 12
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="treeview">
+                        <a href="#">
+                            <i class="fa fa-file-text"></i> 
+                            <span>Form 137</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li class="treeview">
+                                <a href="#">
+                                    <i class="fa fa-cogs"></i> 
+                                    <span>Junior HS Student</span>
+                                    <span class="pull-right-container">
+                                        <i class="fa fa-angle-left pull-right"></i>
+                                    </span>
+                                </a>
+                                <ul class="treeview-menu">
+                                    <li id="form137-grade7">
+                                        <a href="admin_form-137.php">
+                                            <i class="fa fa-user"></i> Grade 7
+                                        </a>
+                                    </li>
+                                    <li id="form137-grade8">
+                                        <a href="admin_form-137_8.php">
+                                            <i class="fa fa-user"></i> Grade 8
+                                        </a>
+                                    </li>
+                                    <li id="form137-grade9">
+                                        <a href="admin_form-137_9.php">
+                                            <i class="fa fa-user"></i> Grade 9
+                                        </a>
+                                    </li>
+                                    <li id="form137-grade10">
+                                        <a href="admin_form-137_10.php">
+                                            <i class="fa fa-user"></i> Grade 10
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+
+                            <li class="treeview">
+                                <a href="#">
+                                    <i class="fa fa-cogs"></i> 
+                                    <span>Senior HS Student</span>
+                                    <span class="pull-right-container">
+                                        <i class="fa fa-angle-left pull-right"></i>
+                                    </span>
+                                </a>
+                                <ul class="treeview-menu">
+                                    <li id="form137-grade11">
+                                        <a href="admin_form-137_11.php">
+                                            <i class="fa fa-user"></i> Grade 11
+                                        </a>
+                                    </li>
+                                    <li id="form137-grade12">
+                                        <a href="admin_form-137_12.php">
+                                            <i class="fa fa-user"></i> Grade 12
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
             <li id="about"><a href="about.php"><i class="fa fa-info-circle"></i> <span>About</span></a></li>
+            <li id="about"><a href="card-maintenance.php"><i class="fa fa-info-circle"></i> <span>Card Maintenance</span></a></li>
+
         </ul>
         
     </section>
