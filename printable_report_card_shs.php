@@ -63,6 +63,41 @@ if ($resultGrades->num_rows > 0) {
     }
 }
 
+
+$sql = "SELECT * FROM core_values_db";
+$result = $conn->query($sql);
+
+$coreValues = [];
+if ($result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $coreValues[] = $row;
+    }
+} else {
+    // Default static values if no data found
+    $coreValues = [
+        [
+            'coreName' => 'Maka-Diyos',
+            'behaviour_one' => "Expresses one's spiritual beliefs while respecting others'",
+            'behavior_two' => 'Shows adherence to ethical principles by upholding truth',
+        ],
+        [
+            'coreName' => 'Maka-Tao',
+            'behaviour_one' => 'Demonstrates a caring attitude towards others',
+            'behavior_two' => 'Acts with kindness and compassion',
+        ],
+        [
+            'coreName' => 'Maka-Kalikasan',
+            'behaviour_one' => 'Shows care for the environment',
+            'behavior_two' => 'Participates in activities that promote environmental awareness',
+        ],
+        [
+            'coreName' => 'Maka-Bansa',
+            'behaviour_one' => 'Demonstrates love for country',
+            'behavior_two' => 'Participates in community service activities',
+        ],
+    ];
+}
+
 $conn->close();
 ?>
 <!DOCTYPE html>
@@ -322,7 +357,7 @@ $conn->close();
     </div>
 </div>
 
-<br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 <div class="report-card">
 
     <!-- Report on Learning Progress -->
@@ -381,43 +416,19 @@ $conn->close();
             <th>3rd</th>
             <th>4th</th>
         </tr>
-        <tr>
-            <td rowspan="2">Maka-Diyos</td>
-            <td>Expresses one's spiritual beliefs while respecting others'</td>
-            <td>AO</td><td>SO</td><td>RO</td><td>NO</td>
-        </tr>
-        <tr>
-            <td>Shows adherence to ethical principles by upholding truth</td>
-            <td>AO</td><td>SO</td><td>RO</td><td>NO</td>
-        </tr>
-        <tr>
-            <td rowspan="2">Maka-Tao</td>
-            <td>Demonstrates a caring attitude towards others</td>
-            <td>AO</td><td>SO</td><td>RO</td><td>NO</td>
-        </tr>
-        <tr>
-            <td>Acts with kindness and compassion</td>
-            <td>AO</td><td>SO</td><td>RO</td><td>NO</td>
-        </tr>
-        <tr>
-            <td rowspan="2">Maka-Kalikasan</td>
-            <td>Shows care for the environment</td>
-            <td>AO</td><td>SO</td><td>RO</td><td>NO</td>
-        </tr>
-        <tr>
-            <td>Participates in activities that promote environmental awareness</td>
-            <td>AO</td><td>SO</td><td>RO</td><td>NO</td>
-        </tr>
-        <tr>
-            <td rowspan="2">Maka-Bansa</td>
-            <td>Demonstrates love for country</td>
-            <td>AO</td><td>SO</td><td>RO</td><td>NO</td>
-        </tr>
-        <tr>
-            <td>Participates in community service activities</td>
-            <td>AO</td><td>SO</td><td>RO</td><td>NO</td>
-        </tr>
+        <?php foreach ($coreValues as $coreValue): ?>
+            <tr>
+                <td rowspan="2"><?php echo htmlspecialchars($coreValue['coreName']); ?></td>
+                <td><?php echo htmlspecialchars($coreValue['behaviour_one']); ?></td>
+                <td>AO</td><td>SO</td><td>RO</td><td>NO</td>
+            </tr>
+            <tr>
+                <td><?php echo htmlspecialchars($coreValue['behavior_two']); ?></td>
+                <td>AO</td><td>SO</td><td>RO</td><td>NO</td>
+            </tr>
+        <?php endforeach; ?>
     </table>
+
 
     <div class="footer-section">
     <table class="descriptor-table" style="width: 60%;  font-size: 0.9em; ">
