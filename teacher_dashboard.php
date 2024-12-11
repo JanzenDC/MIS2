@@ -100,7 +100,7 @@ foreach ($grades as $grade) {
 
 if (!empty($assigned_grades)) {
     $placeholders = implode(',', array_fill(0, count($assigned_grades), '?'));
-    $query = "SELECT * FROM learners WHERE grade_level IN ($placeholders)";
+    $query = "SELECT * FROM learners WHERE grade_level IN ($placeholders) AND status = 'Approved'";
     $stmt = $conn->prepare($query);
     
     $types = str_repeat('i', count($assigned_grades));
@@ -259,13 +259,12 @@ $conn->close();
   </header>
   <aside class="main-sidebar">
         <section class="sidebar">
-            <!-- Logo Section -->
             <div class="sidebar-logo" style="text-align: center; padding: 10px;">
                 <img id="sidebar-logo" src="dist/img/macayo_logo.png" alt="DepEd Logo" style="max-width: 100px; margin-left: 50px; transition: all 0.9s ease;">
             </div>
             <ul class="sidebar-menu" data-widget="tree">
-            <li id="dashboard"><a href="teacher_dashboard.php"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a></li>
-            <li class="treeview">
+                <li id="dashboard"><a href="teacher_dashboard.php"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a></li>
+                <li class="treeview">
                     <a href="#">
                         <i class="fa fa-folder"></i> <span>School Forms</span>
                         <span class="pull-right-container">
@@ -281,14 +280,36 @@ $conn->close();
                                 </span>
                             </a>
                             <ul class="treeview-menu">
-                                <!-- Junior HS Student Dropdown -->
-                                <?php foreach ($grades as $grade => $link): ?>
-                                    <?php if (strpos($assigned_to, $grade) !== false): ?>
-                                        <li id="<?= strtolower(str_replace(' ', '-', $grade)) ?>">
-                                            <a href="<?= $link ?>"><i class="fa fa-user"></i> <?= $grade ?></a>
-                                        </li>
-                                    <?php endif; ?>
-                                <?php endforeach; ?>
+                                <?php if (strpos($assigned_to, 'Grade7') !== false): ?>
+                                    <li id="grade7">
+                                        <a href="teacher_record_grade7.php"><i class="fa fa-user"></i> Grade 7</a>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if (strpos($assigned_to, 'Grade8') !== false): ?>
+                                    <li id="grade8">
+                                        <a href="teacher_record_grade8.php"><i class="fa fa-user"></i> Grade 8</a>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if (strpos($assigned_to, 'Grade9') !== false): ?>
+                                    <li id="grade9">
+                                        <a href="teacher_record_grade9.php"><i class="fa fa-user"></i> Grade 9</a>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if (strpos($assigned_to, 'Grade10') !== false): ?>
+                                    <li id="grade10">
+                                        <a href="teacher_record_grade10.php"><i class="fa fa-user"></i> Grade 10</a>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if (strpos($assigned_to, 'Grade11') !== false): ?>
+                                    <li id="grade11">
+                                        <a href="teacher_record_grade11.php"><i class="fa fa-user"></i> Grade 11</a>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if (strpos($assigned_to, 'Grade12') !== false): ?>
+                                    <li id="grade12">
+                                        <a href="teacher_record_grade12.php"><i class="fa fa-user"></i> Grade 12</a>
+                                    </li>
+                                <?php endif; ?>
                             </ul>
                         </li>
                         <li class="treeview">
@@ -299,14 +320,36 @@ $conn->close();
                                 </span>
                             </a>
                             <ul class="treeview-menu">
-                                <!-- Junior HS Student Dropdown -->
-                                <?php foreach ($grades as $grade => $link): ?>
-                                    <?php if (strpos($assigned_to, $grade) !== false): ?>
-                                        <li id="form-137-<?= strtolower(str_replace(' ', '-', $grade)) ?>">
-                                            <a href="teacher_form-137_<?= strtolower(substr($grade, -1)) ?>.php"><i class="fa fa-user"></i> <?= $grade ?></a>
-                                        </li>
-                                    <?php endif; ?>
-                                <?php endforeach; ?>
+                                <?php if (strpos($assigned_to, 'Grade7') !== false): ?>
+                                    <li id="form-137-grade7">
+                                        <a href="teacher_form-137_7.php"><i class="fa fa-user"></i> Grade 7</a>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if (strpos($assigned_to, 'Grade8') !== false): ?>
+                                    <li id="form-137-grade8">
+                                        <a href="teacher_form-137_8.php"><i class="fa fa-user"></i> Grade 8</a>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if (strpos($assigned_to, 'Grade9') !== false): ?>
+                                    <li id="form-137-grade9">
+                                        <a href="teacher_form-137_9.php"><i class="fa fa-user"></i> Grade 9</a>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if (strpos($assigned_to, 'Grade10') !== false): ?>
+                                    <li id="form-137-grade10">
+                                        <a href="teacher_form-137_10.php"><i class="fa fa-user"></i> Grade 10</a>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if (strpos($assigned_to, 'Grade11') !== false): ?>
+                                    <li id="form-137-grade11">
+                                        <a href="teacher_form-137_11.php"><i class="fa fa-user"></i> Grade 11</a>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if (strpos($assigned_to, 'Grade12') !== false): ?>
+                                    <li id="form-137-grade12">
+                                        <a href="teacher_form-137_12.php"><i class="fa fa-user"></i> Grade 12</a>
+                                    </li>
+                                <?php endif; ?>
                             </ul>
                         </li>
                     </ul>

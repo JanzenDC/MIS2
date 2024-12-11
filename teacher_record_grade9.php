@@ -202,7 +202,7 @@ $conn->close();
   <header class="main-header">
     <a href="./" class="logo">
       <span class="logo-mini"><b>MIS</b></span>
-      <span class="logo-lg"><b>GRADE 7</b> Students</span>
+      <span class="logo-lg"><b>GRADE 9</b> Students</span>
     </a>
     <nav class="navbar navbar-static-top" role="navigation">
         <span class="sr-only">Toggle navigation</span>
@@ -290,10 +290,10 @@ $conn->close();
 
   <div class="content-wrapper">
     <section class="content-header">
-      <h1>MACAYO INTEGRATED SCHOOL <small> GRADE 7 Students</small></h1>
+      <h1>MACAYO INTEGRATED SCHOOL <small> GRADE 9 Students</small></h1>
       <ol class="breadcrumb">
         <li><a href="#"><i class="fa fa-dashboard"></i> Student</a></li>
-        <li class="active">GRADE 7 Students</li>
+        <li class="active">GRADE 9 Students</li>
       </ol>
     </section>
 <!-- Trigger Button -->
