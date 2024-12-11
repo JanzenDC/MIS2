@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = trim($_POST['email']);
     $password = trim($_POST['password']);
     $role = $_POST['role'];
-    $assigned_to = $_POST['grade'];
+    $assigned_to = $_POST['grade'] ??'none';
 
     // Validate input
     if (empty($email) || empty($password) || empty($role)) {
@@ -468,6 +468,7 @@ $conn->close();
                         <div id="grade-dropdown" class="form-group" style="display: none;">
                             <label for="grade">Select Grade (7-12)</label>
                             <select class="form-control" id="grade" name="grade">
+                                <option value="" selected disabled>Select Grade</option>
                                 <option value="Grade7">Grade 7</option>
                                 <option value="Grade8">Grade 8</option>
                                 <option value="Grade9">Grade 9</option>
