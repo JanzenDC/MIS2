@@ -588,7 +588,7 @@ $conn->close();
                 </td>
                 <td class="text-center"><?php echo $learner['status']; ?></td>
                 <td class="text-center">
-                <a href="printable_record.php?lrn=<?= $learner['lrn']; ?>" class="btn btn-primary" style="margin-right: 10px;">Printable SF10</a>
+                <a href="printable_record.php?lrn=<?= $learner['lrn']; ?>&grade=<?= $learner['grade_level']; ?>" class="btn btn-primary" style="margin-right: 10px;">Printable SF10</a>
                 <a href="printable_report_card_shs.php?lrn=<?= $learner['lrn']; ?>" class="btn btn-primary">Printable SF9</a>
             </td>
                 

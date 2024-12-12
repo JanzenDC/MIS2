@@ -602,6 +602,8 @@ $conn->close(); // Close the database connection
         <div class="table table-bordered grade-table">
             <form action="process_grades_shs.php" method="post">
                 <input type="hidden" name="lrn" value="<?php echo htmlspecialchars($lrn); ?>">
+                <input type='hidden' name="grade" value="<?php echo htmlspecialchars($grade_level); ?>">
+  
                 <!-- Adviser, School Year, and Section Row -->
 <div style="display: flex; margin-bottom: 10px; margin-left: 35px;">
     <div style="margin-right: 10px;">

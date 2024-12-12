@@ -2,12 +2,13 @@
 session_start();
 
 // Check if LRN is provided
-if (!isset($_GET['lrn'])) {
+if (!isset($_GET['lrn']) || !isset($_GET['grade'])) {
     echo "No student selected.";
     exit;
 }
 
 $lrn = $_GET['lrn'];
+$gradeSelected = $_GET['grade'];
 
 // Database connection
 $servername = "localhost";
@@ -23,12 +24,15 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
+// Sanitize input to prevent SQL injection
+$lrn = $conn->real_escape_string($lrn);
+$gradeSelected = $conn->real_escape_string($gradeSelected);
+
 // Fetch learner details including guardian name and school attended
-$sqlLearner = "SELECT first_name, middle_name, last_name, guardian_name, school_attended, grade_level, gender, dob FROM learners WHERE lrn = ?";
-$stmtLearner = $conn->prepare($sqlLearner);
-$stmtLearner->bind_param("s", $lrn);
-$stmtLearner->execute();
-$resultLearner = $stmtLearner->get_result();
+$sqlLearner = "SELECT first_name, middle_name, last_name, guardian_name, school_attended, grade_level, gender, dob 
+               FROM learners 
+               WHERE lrn = '$lrn'";
+$resultLearner = $conn->query($sqlLearner);
 
 // Check if learner is found
 if ($resultLearner->num_rows == 0) {
@@ -45,16 +49,29 @@ $fullName = $learner['first_name'] .
 
 // Fetch grades for the learner and join with the subjects table
 $sqlGrades = "
-    SELECT subjects.subject_name, grades.first_grading, grades.second_grading, grades.third_grading, 
-           grades.fourth_grading, grades.final_grade, grades.status, grades.general_average, grades.section, 
-           grades.school_year, grades.adviser
-    FROM grades 
-    JOIN subjects ON grades.subject_id = subjects.id 
-    WHERE grades.lrn = ?";
-$stmtGrades = $conn->prepare($sqlGrades);
-$stmtGrades->bind_param("s", $lrn);
-$stmtGrades->execute();
-$resultGrades = $stmtGrades->get_result();
+    SELECT 
+        g.lrn, 
+        g.subject_id, 
+        g.first_grading, 
+        g.second_grading, 
+        g.third_grading, 
+        g.fourth_grading, 
+        g.final_grade, 
+        g.status,
+        g.grade,
+        s.subject_name
+    FROM 
+        grades g
+    LEFT JOIN 
+        subjects s ON g.subject_id = s.id
+    WHERE 
+        g.lrn = '$lrn' 
+        AND g.grade = '$gradeSelected'
+    ORDER BY 
+        s.subject_name
+";
+
+$resultGrades = $conn->query($sqlGrades);
 
 $grades = [];
 if ($resultGrades->num_rows > 0) {
@@ -65,6 +82,7 @@ if ($resultGrades->num_rows > 0) {
 
 $conn->close();
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -327,48 +345,49 @@ $conn->close();
 
     <!-- Report on Learning Progress -->
     <div class="section-title">REPORT ON LEARNING PROGRESS AND ACHIEVEMENT</div>
-    <table class="table">
-        <tr>
-            <th rowspan="2">Learning Areas</th>
-            <th colspan="4">Quarter</th>
-            <th rowspan="2">Final Rating</th>
-            <th rowspan="2">Remarks</th>
-        </tr>
-        <tr>
-            <th>1</th>
-            <th>2</th>
-            <th>3</th>
-            <th>4</th>
-        </tr>
+<table class="table">
+    <tr>
+        <th rowspan="2">Learning Areas</th>
+        <th colspan="4">Quarter</th>
+        <th rowspan="2">Final Rating</th>
+        <th rowspan="2">Remarks</th>
+    </tr>
+    <tr>
+        <th>1</th>
+        <th>2</th>
+        <th>3</th>
+        <th>4</th>
+    </tr>
 
-        <?php foreach ($grades as $grade): ?>
-            <tr>
-                <td class="subject-row"><?php echo htmlspecialchars($grade['subject_name']); ?></td>
-                <td><?php echo htmlspecialchars($grade['first_grading'] ?? '-'); ?></td>
-                <td><?php echo htmlspecialchars($grade['second_grading'] ?? '-'); ?></td>
-                <td><?php echo htmlspecialchars($grade['third_grading'] ?? '-'); ?></td>
-                <td><?php echo htmlspecialchars($grade['fourth_grading'] ?? '-'); ?></td>
-                <td><?php echo htmlspecialchars($grade['final_grade'] ?? '-'); ?></td>
-                <td><?php echo ($grade['final_grade'] >= 75) ? 'Passed' : 'Failed'; ?></td>
-            </tr>
-        <?php endforeach; ?>
+    <?php foreach ($grades as $grade): ?>
         <tr>
-            <td colspan="5"><strong>General Average</strong></td>
-            <td colspan="2">
-                <?php
-                $total_grades = 0;
-                $subject_count = 0;
-                foreach ($grades as $grade) {
-                    if ($grade['final_grade']) {
-                        $total_grades += $grade['final_grade'];
-                        $subject_count++;
-                    }
-                }
-                echo $subject_count ? round($total_grades / $subject_count, 2) : '-';
-                ?>
-            </td>
+            <td class="subject-row"><?php echo htmlspecialchars($grade['subject_name'] ?? 'Unknown Subject'); ?></td>
+            <td><?php echo htmlspecialchars($grade['first_grading'] ?? '-'); ?></td>
+            <td><?php echo htmlspecialchars($grade['second_grading'] ?? '-'); ?></td>
+            <td><?php echo htmlspecialchars($grade['third_grading'] ?? '-'); ?></td>
+            <td><?php echo htmlspecialchars($grade['fourth_grading'] ?? '-'); ?></td>
+            <td><?php echo htmlspecialchars($grade['final_grade'] ?? '-'); ?></td>
+            <td><?php echo ($grade['final_grade'] >= 75) ? 'Passed' : 'Failed'; ?></td>
         </tr>
-    </table>
+    <?php endforeach; ?>
+    
+    <tr>
+        <td colspan="5"><strong>General Average</strong></td>
+        <td colspan="2">
+            <?php
+            $total_grades = 0;
+            $subject_count = 0;
+            foreach ($grades as $grade) {
+                if (!is_null($grade['final_grade'])) {
+                    $total_grades += $grade['final_grade'];
+                    $subject_count++;
+                }
+            }
+            echo $subject_count ? round($total_grades / $subject_count, 2) : '-';
+            ?>
+        </td>
+    </tr>
+</table>
 
     <!-- Report on Learner's Observed Values -->
     <div class="section-title">REPORT ON LEARNER'S OBSERVE VALUES</div>
