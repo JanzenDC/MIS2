@@ -44,11 +44,13 @@ $fullName = $learner['first_name'] .
     ' ' . $learner['last_name'];
 
     $sqlGrades = "
-    SELECT shs_subjects.subject_name, shs_grades.first_grading, shs_grades.second_grading, shs_grades.third_grading, 
+    SELECT DISTINCT shs_subjects.subject_name, shs_grades.first_grading, shs_grades.second_grading, shs_grades.third_grading, 
            shs_grades.fourth_grading, shs_grades.final_grade, shs_grades.status, shs_grades.general_average, shs_grades.section, 
-           shs_grades.school_year, shs_grades.adviser
-    FROM shs_grades 
-    JOIN shs_subjects ON shs_grades.subject_id = shs_subjects.id 
+           shs_grades.school_year, shs_grades.adviser, learners.grade_level
+    FROM shs_grades
+    LEFT JOIN learners ON shs_grades.lrn = learners.lrn
+    LEFT JOIN shs_subjects ON learners.grade_level = shs_subjects.grade_level
+    
     WHERE shs_grades.lrn = ?";
 $stmtGrades = $conn->prepare($sqlGrades);
 $stmtGrades->bind_param("s", $lrn);
