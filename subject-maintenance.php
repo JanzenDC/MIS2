@@ -38,7 +38,7 @@ if ($conn->connect_error) {
 $subjects = [];
 
 // Fetching all subjects to display in the table
-$result = $conn->query("SELECT * FROM subjects");
+$result = $conn->query("SELECT * FROM subjects ORDER BY grade_holder DESC");
 
 if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
@@ -417,12 +417,25 @@ $conn->close();
                                     <label for="subjectCode">Subject Description</label>
                                     <input type="text" class="form-control" id="subjectCode" name="subject_description" placeholder="Enter Code" required>
                                 </div>
+                                <div class="form-group">
+                                    <label for="gradeLevel">Grade Level</label>
+                                    <select name="grade_level" class="form-control select2" id="gradeLevel" required>
+                                        <option value="" disabled selected>Select Grade Level</option>
+                                        <option value="7">Grade 7</option>
+                                        <option value="8">Grade 8</option>
+                                        <option value="9">Grade 9</option>
+                                        <option value="10">Grade 10</option>
+                                        <option value="11">Grade 11</option>
+                                        <option value="12">Grade 12</option>
+                                    </select>
+                                </div>
                             </div>
                             <div class="box-footer">
                                 <button type="submit" class="btn btn-primary">Add Subject</button>
                             </div>
                         </form>
                     </div>
+
                 </div>
 
                 <div class="col-xs-8">
@@ -437,6 +450,7 @@ $conn->close();
         <th>Curriculum</th>
         <th>Subject Name</th>
         <th>Subject Description</th>
+        <th>Grade Level</th>
         <th style="width: 150px;">Action</th> <!-- Adjust the width as needed -->
     </tr>
 </thead>
@@ -446,8 +460,9 @@ $conn->close();
                                         <td><?= htmlspecialchars($subject['curriculum']) ?></td>
                                         <td><?= htmlspecialchars($subject['subject_name']) ?></td>
                                         <td><?= htmlspecialchars($subject['subject_description']) ?></td>
+                                        <td><?= htmlspecialchars($subject['grade_holder']) ?></td>
                                         <td>
-                                            <button class="btn btn-warning btn-sm edit-btn" data-id="<?= $subject['id'] ?>" data-name="<?= htmlspecialchars($subject['subject_name']) ?>" data-description="<?= htmlspecialchars($subject['subject_description']) ?>">Edit</button>
+                                            <button class="btn btn-warning btn-sm edit-btn" data-id="<?= $subject['id'] ?>" data-name="<?= htmlspecialchars($subject['subject_name']) ?>" data-gradeholder="<?= htmlspecialchars($subject['grade_holder']) ?>" data-description="<?= htmlspecialchars($subject['subject_description']) ?>">Edit</button>
                                             <button class="btn btn-danger btn-sm delete-btn" data-id="<?= $subject['id'] ?>" data-name="<?= htmlspecialchars($subject['subject_name']) ?>">Delete</button>
                                         </td>
                                     </tr>
@@ -490,6 +505,18 @@ $conn->close();
                         <label for="editSubjectDescription">Subject Description</label>
                         <input type="text" class="form-control" id="editSubjectDescription" name="subject_description" required>
                     </div>
+                    <div class="form-group">
+                                    <label for="gradeLevel">Grade Level</label>
+                                    <select name="editgrade_level" class="form-control select2" id="editgrade_level" required>
+                                        <option value="" disabled selected>Select Grade Level</option>
+                                        <option value="7">Grade 7</option>
+                                        <option value="8">Grade 8</option>
+                                        <option value="9">Grade 9</option>
+                                        <option value="10">Grade 10</option>
+                                        <option value="11">Grade 11</option>
+                                        <option value="12">Grade 12</option>
+                                    </select>
+                                </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -551,11 +578,11 @@ $(document).ready(function() {
         const id = $(this).data('id');
         const name = $(this).data('name');
         const description = $(this).data('description');
-
+        const grade_holder = $(this).data('gradeholder');
         $('#editSubjectId').val(id);
         $('#editSubjectName').val(name);
         $('#editSubjectDescription').val(description);
-
+        $('#editgrade_level').val(grade_holder);
         $('#editModal').modal('show');
     });
 

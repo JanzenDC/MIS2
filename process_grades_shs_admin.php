@@ -105,6 +105,6 @@ if ($subjectCount > 0) {
 $conn->close();
 
 // Redirect back to the academic record view
-header("Location: view_academic_record_shs.php?lrn=" . urlencode($lrn));
+header("Location: view_admin_record_shs.php?lrn=" . urlencode($lrn));
 exit;
 ?>

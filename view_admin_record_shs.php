@@ -39,15 +39,6 @@ if ($user) {
 $stmt->close(); // Close the statement
 
 // Fetch subjects from the database (use `shs_subjects` table)
-$subjects = [];
-$stmt = $conn->prepare("SELECT id, subject_name FROM shs_subjects"); // Changed to 'shs_subjects'
-$stmt->execute();
-$result = $stmt->get_result();
-
-while ($row = $result->fetch_assoc()) {
-    $subjects[$row['id']] = $row['subject_name']; // Store subject id and name
-}
-$stmt->close(); // Close the statement for fetching subjects
 
 // Fetch academic records and learner's name
 $lrn = isset($_GET['lrn']) ? $_GET['lrn'] : '';
@@ -76,7 +67,21 @@ if ($lrn) {
         $gender = $row['gender']; // Fetch gender
         $grade_level = $row['grade_level'];
     }
-    $stmt->close(); // Close the statement for fetching learner details
+
+    $subjects = [];
+    
+    // Escape user input to prevent SQL injection
+    $grade_level = mysqli_real_escape_string($conn, $grade_level);
+    
+    // Raw SQL query
+    $sql = "SELECT id, subject_name FROM shs_subjects WHERE grade_level = '$grade_level'";
+    $result = $conn->query($sql);
+    
+    if ($result && $result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $subjects[$row['id']] = $row['subject_name']; // Store subject id and name
+        }
+    }
 
     // Fetch academic records (grades) for the learner from the `shs_grades` table
     $stmt = $conn->prepare("SELECT subject_id, first_grading, second_grading, third_grading, fourth_grading, final_grade, status, general_average, adviser, school_year, section FROM shs_grades WHERE lrn = ?");
@@ -600,7 +605,7 @@ $conn->close(); // Close the database connection
         
 
         <div class="table table-bordered grade-table">
-            <form action="process_grades_shs.php" method="post">
+            <form action="process_grades_shs_admin.php" method="post">
                 <input type="hidden" name="lrn" value="<?php echo htmlspecialchars($lrn); ?>">
                 <input type='hidden' name="grade" value="<?php echo htmlspecialchars($grade_level); ?>">
   

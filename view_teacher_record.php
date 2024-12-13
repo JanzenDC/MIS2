@@ -24,7 +24,7 @@ if (!isset($_SESSION['user_id'])) {
 $userId = $_SESSION['user_id']; // Assuming user ID is stored in session upon login
 
 // Fetch user role
-$query = "SELECT assigned_to, role FROM users WHERE id = ?";
+$query = "SELECT role FROM users WHERE id = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param("i", $userId);
 $stmt->execute();
@@ -32,25 +32,13 @@ $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 
 if ($user) {
-    $assigned_to = $user['assigned_to']; // Ensure it's treated as a string
     $userRole = $user['role']; // Fetch the user's role
 } else {
-    $assigned_to = "";
     $userRole = "No Role"; // Default role if not found
 }
-
 $stmt->close(); // Close the statement
 
-// Fetch subjects from the database
-$subjects = [];
-$stmt = $conn->prepare("SELECT id, subject_name FROM subjects"); // Changed to 'subjects'
-$stmt->execute();
-$result = $stmt->get_result();
-
-while ($row = $result->fetch_assoc()) {
-    $subjects[$row['id']] = $row['subject_name']; // Store subject id and name
-}
-$stmt->close(); // Close the statement for fetching subjects
+// Fetch subjects from the database (use `shs_subjects` table)
 
 // Fetch academic records and learner's name
 $lrn = isset($_GET['lrn']) ? $_GET['lrn'] : '';
@@ -77,12 +65,26 @@ if ($lrn) {
         $last_name = $row['last_name'];
         $dob = $row['dob']; // Fetch DOB
         $gender = $row['gender']; // Fetch gender
-        $grade_level = $row['grade_level']; // Fixed extra space issue
+        $grade_level = $row['grade_level'];
     }
-    $stmt->close(); // Close the statement for fetching learner details
 
-    // Fetch academic records (grades) for the learner from the grades table
-    $stmt = $conn->prepare("SELECT subject_id, first_grading, second_grading, third_grading, fourth_grading, final_grade, status, general_average, adviser, school_year, section FROM grades WHERE lrn = ?");
+    $subjects = [];
+    
+    // Escape user input to prevent SQL injection
+    $grade_level = mysqli_real_escape_string($conn, $grade_level);
+    
+    // Raw SQL query
+    $sql = "SELECT id, subject_name FROM shs_subjects WHERE grade_level = '$grade_level'";
+    $result = $conn->query($sql);
+    
+    if ($result && $result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $subjects[$row['id']] = $row['subject_name']; // Store subject id and name
+        }
+    }
+
+    // Fetch academic records (grades) for the learner from the `shs_grades` table
+    $stmt = $conn->prepare("SELECT subject_id, first_grading, second_grading, third_grading, fourth_grading, final_grade, status, general_average, adviser, school_year, section FROM shs_grades WHERE lrn = ?");
     $stmt->bind_param("s", $lrn);
     $stmt->execute();
     $result = $stmt->get_result();

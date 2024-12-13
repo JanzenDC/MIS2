@@ -18,23 +18,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $id = $_POST['id'];
     $subject_name = $_POST['subject_name'];
     $subject_description = $_POST['subject_description'];
+    $grade_level = $_POST['editgrade_level'];
 
-    // Prepare and bind
-    $stmt = $conn->prepare("UPDATE subjects SET subject_name = ?, subject_description = ? WHERE id = ?");
-    $stmt->bind_param("ssi", $subject_name, $subject_description, $id);
+    // Escape user input to prevent SQL injection
+    $id = mysqli_real_escape_string($conn, $id);
+    $subject_name = mysqli_real_escape_string($conn, $subject_name);
+    $subject_description = mysqli_real_escape_string($conn, $subject_description);
+    $grade_level = mysqli_real_escape_string($conn, $grade_level);
 
-    // Execute the statement
-    if ($stmt->execute()) {
+    // Raw SQL query
+    $sql = "UPDATE subjects 
+            SET subject_name = '$subject_name', 
+                subject_description = '$subject_description', 
+                grade_holder = '$grade_level' 
+            WHERE id = '$id'";
+
+    // Execute the query
+    if ($conn->query($sql) === TRUE) {
         // Redirect back to the subject maintenance page with a success message
         header("Location: subject-maintenance.php?msg=Subject updated successfully!");
     } else {
         // Redirect back with an error message
-        header("Location: subject-maintenance.php?msg=Error updating subject!");
+        header("Location: subject-maintenance.php?msg=Error updating subject: " . $conn->error);
     }
-
-    // Close the statement and connection
-    $stmt->close();
 }
+
 
 $conn->close();
 ?>

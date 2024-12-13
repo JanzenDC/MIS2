@@ -23,12 +23,12 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
+// Escape the LRN to prevent SQL injection
+$lrn = mysqli_real_escape_string($conn, $lrn);
+
 // Fetch learner details including guardian name and school attended
-$sqlLearner = "SELECT * FROM learners WHERE lrn = ?";
-$stmtLearner = $conn->prepare($sqlLearner);
-$stmtLearner->bind_param("s", $lrn);
-$stmtLearner->execute();
-$resultLearner = $stmtLearner->get_result();
+$sqlLearner = "SELECT * FROM learners WHERE lrn = '$lrn'";
+$resultLearner = $conn->query($sqlLearner);
 
 // Check if learner is found
 if ($resultLearner->num_rows == 0) {
@@ -40,32 +40,31 @@ $learner = $resultLearner->fetch_assoc();
 
 // Fetch grades along with adviser, school year, and section
 $sqlGrades = "
-    SELECT subjects.subject_name, grades.first_grading, grades.second_grading, grades.third_grading, 
-           grades.fourth_grading, grades.final_grade, grades.status, grades.general_average, 
-           grades.adviser, grades.school_year, grades.section
-    FROM grades 
-    JOIN subjects ON grades.subject_id = subjects.id 
-    WHERE grades.lrn = ?";
-$stmtGrades = $conn->prepare($sqlGrades);
-$stmtGrades->bind_param("s", $lrn);
-$stmtGrades->execute();
-$resultGrades = $stmtGrades->get_result();
+    SELECT DISTINCT shs_subjects.subject_name, shs_grades.first_grading, shs_grades.second_grading, shs_grades.third_grading, 
+           shs_grades.fourth_grading, shs_grades.final_grade, shs_grades.status, shs_grades.general_average, shs_grades.section, 
+           shs_grades.school_year, shs_grades.adviser, learners.grade_level
+    FROM shs_grades
+    LEFT JOIN learners ON shs_grades.lrn = learners.lrn
+    LEFT JOIN shs_subjects ON learners.grade_level = shs_subjects.grade_level
+    WHERE shs_grades.lrn = '$lrn'";
+$resultGrades = $conn->query($sqlGrades);
 
 $grades = [];
 $adviser = '';
 $school_year = '';
 $section = '';
-if ($resultGrades->num_rows > 0) {
+if ($resultGrades && $resultGrades->num_rows > 0) {
     while ($row = $resultGrades->fetch_assoc()) {
         $grades[] = $row;
         $adviser = $row['adviser'];
-        $schoolYear = $row['school_year'];
+        $school_year = $row['school_year'];
         $section = $row['section'];
     }
 }
 
 $conn->close();
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -252,39 +251,62 @@ $conn->close();
     <div class="section">
         <h3>SCHOLASTIC RECORD</h3>
         <?php for ($grade = 7; $grade <= 10; $grade++): ?>
-    <div class="grade-record">
-        <span class="hidden-grade-label"><strong>Grade <?= $grade ?>:</strong></span> 
-        <p>Classified as Grade: <?= htmlspecialchars($grade) ?> Section: <?= htmlspecialchars($section) ?> School Year: <?= htmlspecialchars($school_year) ?> Name of Adviser/Teacher: <?= htmlspecialchars($adviser) ?></p>
-        <table class="table">
-                <tr>
-                    <th>LEARNING AREAS</th>
-                    <th>1st Quarter</th>
-                    <th>2nd Quarter</th>
-                    <th>3rd Quarter</th>
-                    <th>4th Quarter</th>
-                    <th>Final Rating</th>
-                    <th>Remarks</th>
-                </tr>
-                <?php foreach ($grades as $gradeData): ?>
-                <tr>
-                    <td><?= htmlspecialchars($gradeData['subject_name']); ?></td>
-                    <td><?= htmlspecialchars($gradeData['first_grading']); ?></td>
-                    <td><?= htmlspecialchars($gradeData['second_grading']); ?></td>
-                    <td><?= htmlspecialchars($gradeData['third_grading']); ?></td>
-                    <td><?= htmlspecialchars($gradeData['fourth_grading']); ?></td>
-                    <td><?= htmlspecialchars($gradeData['final_grade']); ?></td>
-                    <td><?= htmlspecialchars($gradeData['status']); ?></td>
-                </tr>
-                <?php endforeach; ?>
-                <tr>
-                    <td colspan="5" style="text-align: right;">General Average</td>
-                    <td><?= htmlspecialchars($grades[0]['general_average'] ?? ''); ?></td>
-                    <td></td>
-                </tr>
-            </table>
-        </div> 
+            <div class="grade-record">
+                <span class="hidden-grade-label"><strong>Grade <?= $grade ?>:</strong></span>
+                <?php
+                // Filter grades for the current grade level
+                $filteredGrades = array_filter($grades, function ($gradeData) use ($grade) {
+                    return $gradeData['grade_level'] == $grade;
+                });
+
+                // Get the details for this grade level (if any grades exist)
+                $gradeDetails = reset($filteredGrades);
+                $currentAdviser = $gradeDetails['adviser'] ?? '';
+                $currentSchoolYear = $gradeDetails['school_year'] ?? '';
+                $currentSection = $gradeDetails['section'] ?? '';
+                ?>
+                <p>Classified as Grade: <?= htmlspecialchars($grade) ?>
+                    Section: <?= htmlspecialchars($currentSection) ?>
+                    School Year: <?= htmlspecialchars($currentSchoolYear) ?>
+                    Name of Adviser/Teacher: <?= htmlspecialchars($currentAdviser) ?>
+                </p>
+                <table class="table">
+                    <tr>
+                        <th>LEARNING AREAS</th>
+                        <th>1st Quarter</th>
+                        <th>2nd Quarter</th>
+                        <th>3rd Quarter</th>
+                        <th>4th Quarter</th>
+                        <th>Final Rating</th>
+                        <th>Remarks</th>
+                    </tr>
+                    <?php foreach ($filteredGrades as $gradeData): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($gradeData['subject_name']); ?></td>
+                            <td><?= htmlspecialchars($gradeData['first_grading']); ?></td>
+                            <td><?= htmlspecialchars($gradeData['second_grading']); ?></td>
+                            <td><?= htmlspecialchars($gradeData['third_grading']); ?></td>
+                            <td><?= htmlspecialchars($gradeData['fourth_grading']); ?></td>
+                            <td><?= htmlspecialchars($gradeData['final_grade']); ?></td>
+                            <td><?= htmlspecialchars($gradeData['status']); ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                    <?php if (!empty($filteredGrades)): ?>
+                        <tr>
+                            <td colspan="5" style="text-align: right;">General Average</td>
+                            <td><?= htmlspecialchars($gradeDetails['general_average'] ?? ''); ?></td>
+                            <td></td>
+                        </tr>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="7" style="text-align: center;">No records found for Grade <?= $grade ?></td>
+                        </tr>
+                    <?php endif; ?>
+                </table>
+            </div>
         <?php endfor; ?>
     </div>
+
 
     <!-- Certification Section -->
     <div class="section certification">

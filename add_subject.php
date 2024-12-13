@@ -19,24 +19,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $curriculum_id = $_POST['curriculum_id'];
     $subject_name = $_POST['subject_name'];
     $subject_description = $_POST['subject_description'];
+    $grade_level = $_POST['grade_level'];
 
-    // Prepare and bind the statement to prevent SQL injection
-    $stmt = $conn->prepare("INSERT INTO subjects (curriculum, subject_name, subject_description) VALUES (?, ?, ?)");
-    $stmt->bind_param("sss", $curriculum_id, $subject_name, $subject_description);
+    // Construct the raw SQL query
+    $sql = "INSERT INTO subjects (curriculum, subject_name, subject_description, grade_holder) 
+            VALUES ('$curriculum_id', '$subject_name', '$subject_description', '$grade_level')";
 
-    
-    // Execute the statement
-    if ($stmt->execute()) {
+    // Execute the query
+    if ($conn->query($sql) === TRUE) {
         // Success message
         echo "<script>alert('Subject added successfully!'); window.location.href='subject-maintenance.php';</script>";
     } else {
         // Error message
-        echo "<script>alert('Error: " . $stmt->error . "'); window.history.back();</script>";
+        echo "<script>alert('Error: " . $conn->error . "'); window.location.href='subject-maintenance.php';</script>";
     }
-
-    // Close the statement
-    $stmt->close();
 }
+
 
 // Close the connection
 $conn->close();

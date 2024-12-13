@@ -38,16 +38,7 @@ if ($user) {
 }
 $stmt->close(); // Close the statement
 
-// Fetch subjects from the database
-$subjects = [];
-$stmt = $conn->prepare("SELECT id, subject_name FROM subjects"); // Changed to 'subjects'
-$stmt->execute();
-$result = $stmt->get_result();
 
-while ($row = $result->fetch_assoc()) {
-    $subjects[$row['id']] = $row['subject_name']; // Store subject id and name
-}
-$stmt->close(); // Close the statement for fetching subjects
 
 // Fetch academic records and learner's name
 $lrn = isset($_GET['lrn']) ? $_GET['lrn'] : '';
@@ -76,7 +67,20 @@ if ($lrn) {
         $gender = $row['gender']; // Fetch gender
         $grade_level = $row['grade_level']; // Fixed extra space issue
     }
-    $stmt->close(); // Close the statement for fetching learner details
+    $subjects = [];
+    
+    // Escape user input to prevent SQL injection
+    $grade_level = mysqli_real_escape_string($conn, $grade_level);
+    
+    // Raw SQL query
+    $sql = "SELECT id, subject_name FROM subjects WHERE grade_holder = '$grade_level'";
+    $result = $conn->query($sql);
+    
+    if ($result && $result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $subjects[$row['id']] = $row['subject_name']; // Store subject id and name
+        }
+    }
 
     // Fetch academic records (grades) for the learner from the grades table
     $stmt = $conn->prepare("SELECT subject_id, first_grading, second_grading, third_grading, fourth_grading, final_grade, status, general_average, adviser, school_year, section FROM grades WHERE lrn = ?");
@@ -558,7 +562,8 @@ $conn->close(); // Close the database connection
         <div class="table table-bordered grade-table">
         <form action="process_grades.php" method="post">
     <input type="hidden" name="lrn" value="<?php echo htmlspecialchars($lrn); ?>">
-    
+    <input type='hidden' name="grade" value="<?php echo htmlspecialchars($grade_level); ?>">
+
    <!-- Adviser, School Year, and Section Row -->
 <div style="display: flex; margin-bottom: 10px; margin-left: 35px;">
     <div style="margin-right: 10px;">
