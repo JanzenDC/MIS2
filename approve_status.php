@@ -45,20 +45,33 @@ $result = $conn->query($query);
 if ($result->num_rows > 0) {
     $userRole = $result->fetch_assoc()['role'];
 } else {
-    header("Location: login.php?error=role_not_found");
+    redirectBasedOnRole($userRole);
     exit;
 }
 
 // Process proID
 $proID = sanitizeInput($_GET['proID'] ?? '');
 if ($proID) {
-    // Check if the proID exists in the promoted_student_tbl
-    $checkQuery = "SELECT learnersID FROM promoted_student_tbl WHERE proID = '$proID'";
+    // Check if the proID exists and is already approved
+    $checkQuery = "SELECT learnersID, promotedStatus, approveStatus FROM promoted_student_tbl WHERE proID = '$proID'";
     $checkResult = $conn->query($checkQuery);
 
     if ($checkResult->num_rows > 0) {
-        $learnersID = $checkResult->fetch_assoc()['learnersID'];
+        $row = $checkResult->fetch_assoc();
+        $learnersID = $row['learnersID'];
+        $promotedStatus = $row['promotedStatus'];
+        $approveStatus = $row['approveStatus'];
 
+        if ($promotedStatus == 1) {
+            // Already approved, redirect with error
+            redirectBasedOnRole($userRole);
+            exit;
+        }
+        if ($approveStatus == 2) {
+            // Already approved, redirect with error
+            redirectBasedOnRole($userRole);
+            exit;
+        }
         // Get the current grade level of the learner
         $learnerQuery = "SELECT grade_level FROM learners WHERE lrn = '$learnersID'";
         $learnerResult = $conn->query($learnerQuery);
@@ -73,10 +86,11 @@ if ($proID) {
                             WHERE proID = '$proID'";
             $conn->query($updateQuery);
 
-            $updateQueryLists = "UPDATE learners 
-                        SET grade_level = '$promotedTo' 
-                        WHERE lrn = '$learnersID'";
-            $conn->query($updateQueryLists);
+            // Update the learners table
+            $updateLearnerQuery = "UPDATE learners 
+                                   SET grade_level = '$promotedTo' 
+                                   WHERE lrn = '$learnersID'";
+            $conn->query($updateLearnerQuery);
         }
     }
 }

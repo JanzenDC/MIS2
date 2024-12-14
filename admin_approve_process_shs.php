@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// Database connection setup
 $servername = "localhost"; 
 $username = "root"; 
 $password = ""; 
@@ -9,12 +8,11 @@ $dbname = "school_db";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 
-// Check connection
 if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+    echo "<script>showAlertAndRedirect('Connection failed: " . $conn->connect_error . "', 'view_admin_record_shs.php');</script>";
+    exit; // Ensure exit after alert
 }
 
-// Sanitize input function
 function sanitizeInput($input) {
     $input = trim($input);
     $input = stripslashes($input);
@@ -22,11 +20,9 @@ function sanitizeInput($input) {
     return $input;
 }
 
-// Fetch and sanitize POST data
 $lrn = isset($_POST['lrn']) ? sanitizeInput($conn->real_escape_string($_POST['lrn'])) : '';
 
 if (!empty($lrn)) {
-    // Check if the LRN exists in the learners table
     $checkQuery = "SELECT COUNT(*) as count FROM learners WHERE lrn = '$lrn'";
     $checkResult = $conn->query($checkQuery);
 
@@ -46,31 +42,28 @@ if (!empty($lrn)) {
             if ($existsResult && $existsResult->num_rows > 0) {
                 $existsRow = $existsResult->fetch_assoc();
                 if ($existsRow['count'] == 0) {
-                    // If not already in promoted_student_tbl, insert the record
                     $insertQuery = "INSERT INTO promoted_student_tbl (learnersID, approveStatus) VALUES ('$lrn', 1)";
-                    $conn->query($insertQuery);
+                    if ($conn->query($insertQuery) === TRUE) {
+                        echo "<script>showAlertAndRedirect('Learner promoted successfully.', 'view_admin_record_shs.php?lrn=" . urlencode($lrn) . "&status=success');</script>";
+                    } else {
+                        echo "<script>showAlertAndRedirect('Failed to promote learner.', 'view_admin_record_shs.php');</script>";
+                    }
+                } else {
+                    echo "<script>showAlertAndRedirect('Learner already promoted.', 'view_admin_record_shs.php');</script>";
                 }
             }
         } else {
-            // If the LRN doesn't exist in learners, redirect with an error message
-            header("Location: view_admin_record.php?lrn=" . urlencode($lrn) . "&status=lrn_not_found");
-            exit;
+            echo "<script>showAlertAndRedirect('LRN not found.', 'view_admin_record_shs.php?lrn=" . urlencode($lrn) . "&status=lrn_not_found');</script>";
+            exit; // Ensure exit after alert
         }
     } else {
-        // If the learners query failed, redirect with an error message
-        header("Location: view_admin_record.php?status=query_failed");
-        exit;
+        echo "<script>showAlertAndRedirect('Failed to check LRN.', 'view_admin_record_shs.php');</script>";
+        exit; // Ensure exit after alert
     }
 } else {
-    // If no LRN is provided, redirect with an error message
-    header("Location: view_admin_record.php?status=missing_lrn");
-    exit;
+    echo "<script>showAlertAndRedirect('No LRN provided.', 'view_admin_record_shs.php');</script>";
+    exit; // Ensure exit after alert
 }
 
-// Close the database connection
 $conn->close();
-
-// Redirect back to the academic record view
-header("Location: view_admin_record.php?lrn=" . urlencode($lrn) . "&status=success");
-exit;
 ?>

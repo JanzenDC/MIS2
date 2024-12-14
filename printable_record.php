@@ -40,13 +40,24 @@ $learner = $resultLearner->fetch_assoc();
 
 // Fetch grades along with adviser, school year, and section
 $sqlGrades = "
-    SELECT DISTINCT subjects.subject_name, grades.first_grading, grades.second_grading, grades.third_grading, 
-           grades.fourth_grading, grades.final_grade, grades.status, grades.general_average, grades.section, 
-           grades.school_year, grades.adviser, grades.grade AS main_grade, learners.grade_level, learners.lrn
-    FROM grades
-    LEFT JOIN learners ON grades.lrn = learners.lrn
-    LEFT JOIN subjects ON learners.grade_level = subjects.grade_holder
-    WHERE learners.lrn = '$lrn'";
+SELECT DISTINCT subjects.subject_name, 
+                COALESCE(grades.first_grading, 0) AS first_grading,
+                COALESCE(grades.second_grading, 0) AS second_grading,
+                COALESCE(grades.third_grading, 0) AS third_grading,
+                COALESCE(grades.fourth_grading, 0) AS fourth_grading,
+                COALESCE(grades.final_grade, 0) AS final_grade,
+                COALESCE(grades.status, 'Not Passed') AS status,
+                COALESCE(grades.general_average, 0) AS general_average,
+                COALESCE(grades.section, 'N/A') AS section,
+                COALESCE(grades.school_year, 'N/A') AS school_year,
+                COALESCE(grades.adviser, 'N/A') AS adviser,
+                COALESCE(grades.grade, 0) AS main_grade,
+                learners.grade_level,
+                learners.lrn
+FROM subjects
+LEFT JOIN grades ON grades.lrn = '$lrn' AND grades.subject_id = subjects.id
+LEFT JOIN learners ON grades.lrn = learners.lrn
+WHERE learners.lrn = '$lrn'";
 $resultGrades = $conn->query($sqlGrades);
 
 $grades = [];
