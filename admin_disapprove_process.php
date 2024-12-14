@@ -34,7 +34,14 @@ if (!empty($lrn)) {
         $row = $checkResult->fetch_assoc();
         if ($row['count'] > 0) {
             // Check if the LRN already exists in the promoted_student_tbl
-            $existsQuery = "SELECT COUNT(*) as count FROM promoted_student_tbl WHERE learnersID = '$lrn'";
+            $existsQuery = "
+                SELECT COUNT(*) as count 
+                FROM promoted_student_tbl 
+                WHERE learnersID = '$lrn' 
+                AND approveStatus IN ('1', '2') 
+                AND promotedStatus = '0'
+            ";
+                 
             $existsResult = $conn->query($existsQuery);
 
             if ($existsResult && $existsResult->num_rows > 0) {
@@ -47,17 +54,17 @@ if (!empty($lrn)) {
             }
         } else {
             // If the LRN doesn't exist in learners, redirect with an error message
-            header("Location: view_admin_record.php?lrn=" . urlencode($lrn) . "&error=lrn_not_found");
+            header("Location: view_admin_record.php?lrn=" . urlencode($lrn) . "&status=lrn_not_found");
             exit;
         }
     } else {
         // If the learners query failed, redirect with an error message
-        header("Location: view_admin_record.php?error=query_failed");
+        header("Location: view_admin_record.php?status=query_failed");
         exit;
     }
 } else {
     // If no LRN is provided, redirect with an error message
-    header("Location: view_admin_record.php?error=missing_lrn");
+    header("Location: view_admin_record.php?status=missing_lrn");
     exit;
 }
 

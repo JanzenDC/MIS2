@@ -511,7 +511,7 @@ $conn->close();
 <!-- Trigger Button -->
 <br>
 <div class="text-center">
-  <h2>FORM 137 RECORDS</h2>
+  <h2>Promoted/Non Promoted Lists</h2>
 </div>
 
     
@@ -542,7 +542,8 @@ $conn->close();
                             <h3 class="box-title">All Students</h3>
                         </div>
                         <div class="box-body">
-                        <table id="example1" class="table table-bordered table-striped">
+
+<table id="example1" class="table table-bordered table-striped">
     <thead>
         <tr>
             <th class="text-center">#</th>
@@ -588,13 +589,17 @@ $conn->close();
                     <?php endif; ?>
                 </td>
 
+                <!-- Action buttons hidden for Grade 12 -->
                 <td class="text-center">
-                    <a href="approve_status.php?proID=<?= $learner['proID']; ?>" class="btn btn-primary" style="margin-right: 10px;">Promote</a>
+                    <?php if ($learner['promotedTo'] != 12): ?>
+                        <a href="approve_status.php?proID=<?= $learner['proID']; ?>" class="btn btn-success" style="margin-right: 10px;">Approved</a>
+                    <?php endif; ?>
                 </td>
             </tr>
         <?php endforeach; ?>
     </tbody>
 </table>
+
 
 
                                 <tbody>
@@ -610,9 +615,16 @@ $conn->close();
   </div>
 
   
-  <script src="bower_components/datatables.net/js/jquery.dataTables.min.js">
-  </script>
-  <script src="bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+<!-- Include DataTables and Buttons extensions -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
   <footer class="main-footer">
     <div class="pull-right hidden-xs">
       <b>Version</b> 1.0
@@ -636,7 +648,39 @@ $conn->close();
 
 <script>
   $(function () {
-    $('#example1').DataTable();
+    $('#example1').DataTable({
+        dom: 'Bfrtip', // Define the buttons container
+        buttons: [
+            {
+                extend: 'excelHtml5',
+                title: 'Student Data',
+                exportOptions: {
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7] // Specify the columns to include (index-based)
+                }
+            },
+            {
+                extend: 'pdfHtml5',
+                title: 'Student Data',
+                orientation: 'landscape', // Optional: landscape or portrait
+                pageSize: 'A4', // Paper size
+                exportOptions: {
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7] // Specify the columns to include (index-based)
+                }
+            },
+            {
+                extend: 'print',
+                title: 'Student Data',
+                exportOptions: {
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7] // Specify the columns to include (index-based)
+                }
+            }
+        ],
+        paging: true,
+        searching: true,
+        order: [[0, 'asc']], // Default sorting by the first column
+        responsive: true
+    });
+
     $('.select2').select2();
   });
 </script>

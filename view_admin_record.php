@@ -713,11 +713,11 @@ $conn->close(); // Close the database connection
             <div style='display: flex; gap: 20px;'>
                 <form action="admin_approve_process.php" method="post">
                     <input type="hidden" name="lrn" value="<?php echo htmlspecialchars($lrn); ?>">
-                    <button type="submit" class="btn btn-primary">Approve</button>
+                    <button type="submit" class="btn btn-success">Promote</button>
                 </form>
                 <form action="admin_disapprove_process.php" method="post">
                     <input type="hidden" name="lrn" value="<?php echo htmlspecialchars($lrn); ?>">
-                    <button type="submit" class="btn btn-primary">Disapprove</button>
+                    <button type="submit" class="btn btn-danger">Reject</button>
                 </form>
             </div>
 
@@ -736,6 +736,7 @@ $conn->close(); // Close the database connection
     <strong>No Copyright Infringement &copy;.</strong> All rights reserved.
   </footer>
 </div>
+
 <script>
 function confirmLogout() {
     if (confirm("Are you sure you want to log out?")) {

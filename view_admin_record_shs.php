@@ -718,7 +718,18 @@ $conn->close(); // Close the database connection
                     </tr>
                 </table>
                 <button type="submit" class="btn btn-primary">Save Grades</button>
+
             </form>
+            <div style='display: flex; gap: 20px;'>
+                <form action="admin_approve_process_shs.php" method="post">
+                    <input type="hidden" name="lrn" value="<?php echo htmlspecialchars($lrn); ?>">
+                    <button type="submit" class="btn btn-success">Promote</button>
+                </form>
+                <form action="admin_disapprove_process_shs.php" method="post">
+                    <input type="hidden" name="lrn" value="<?php echo htmlspecialchars($lrn); ?>">
+                    <button type="submit" class="btn btn-danger">Reject</button>
+                </form>
+            </div>
         </div>
     </div>
     </div>
@@ -736,7 +747,14 @@ $conn->close(); // Close the database connection
   </footer>
 </div>
 
-
+<script>
+function showAlertAndRedirect(message, redirectUrl, delay = 2000) {
+    alert(message); // Show the alert with the message
+    setTimeout(function() {
+        window.location.href = redirectUrl; // Redirect after the specified delay
+    }, delay);
+}
+</script>
 <script>
 function confirmLogout() {
     if (confirm("Are you sure you want to log out?")) {
