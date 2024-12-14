@@ -1,25 +1,31 @@
 <?php
-// Include your database connection file
-include 'db_connection.php'; // Ensure you have your database connection established
+// Database connection
+$servername = "localhost"; 
+$username = "root"; 
+$password = ""; 
+$dbname = "school_db"; 
 
-session_start(); // Start the session to access session variables
-$userId = $_SESSION['user_id']; // Assuming user ID is stored in session upon login
+$conn = new mysqli($servername, $username, $password, $dbname);
 
-// Fetch user role only
-$query = "SELECT assigned_to, role FROM users WHERE id = ?";
-$stmt = $conn->prepare($query);
-$stmt->bind_param("i", $userId);
-$stmt->execute();
-$result = $stmt->get_result();
-$user = $result->fetch_assoc();
-
-if ($user) {
-    $assigned_to = $user['assigned_to']; // fetch Grade7 - Grade12
-    $userRole = $user['role']; // Fetch the user's role
-} else {
-    $assigned_to = "";
-    $userRole = "No Role"; // Default role if not found
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
 }
+
+session_start();
+$userId = $_SESSION['user_id']; 
+$assigned_to = "";
+
+// Fetch user role and assigned grades
+$query = "SELECT assigned_to, role FROM users WHERE id = '$userId'";
+$result = $conn->query($query);
+if ($result->num_rows > 0) {
+    $user = $result->fetch_assoc();
+    $assigned_to = trim($user['assigned_to']);
+    $userRole = $user['role']; 
+} else {
+    $userRole = "No Role"; 
+}
+
 $grades = [
     'Grade7' => 'teacher_record_grade7.php',
     'Grade8' => 'teacher_record_grade8.php',
@@ -28,92 +34,63 @@ $grades = [
     'Grade11' => 'teacher_record_grade11.php',
     'Grade12' => 'teacher_record_grade12.php',
 ];
-?>
-
-<?php
-// Database connection (replace with your own connection parameters)
-$servername = "localhost"; // Your database server
-$username = "root"; // Your database username
-$password = ""; // Your database password
-$dbname = "school_db"; // Your database name
-
-// Create connection
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
-    $lrn = $_POST['lrn'];
-    $fname = $_POST['fname'];
-    $lname = $_POST['lname'];
-    $dob = $_POST['dob'];
-    $gender = $_POST['gender'];
-    $studentType = $_POST['studentType'];
-    $schoolAttended = $_POST['schoolAttended'];
-    $gradelevel = $_POST['gradelevel'];
-    $guardianName = $_POST['guardianName'];
-    $guardian = $_POST['guardian'];
-    $curriculum = $_POST['curriculum'];
-    
-    // Handle file uploads
+    $lrn = $conn->real_escape_string($_POST['lrn']);
+    $fname = $conn->real_escape_string($_POST['fname']);
+    $lname = $conn->real_escape_string($_POST['lname']);
+    $dob = $conn->real_escape_string($_POST['dob']);
+    $gender = $conn->real_escape_string($_POST['gender']);
+    $studentType = $conn->real_escape_string($_POST['studentType']);
+    $schoolAttended = $conn->real_escape_string($_POST['schoolAttended']);
+    $gradelevel = $conn->real_escape_string($_POST['gradelevel']);
+    $guardianName = $conn->real_escape_string($_POST['guardianName']);
+    $guardian = $conn->real_escape_string($_POST['guardian']);
+    $curriculum = $conn->real_escape_string($_POST['curriculum']);
+
     $sf10File = $_FILES['sf10File'];
     $imageFile = $_FILES['imageFile'];
-    
-    // Define the upload directory and file names
+
     $uploadDir = 'uploads/';
     $sf10FilePath = $uploadDir . basename($sf10File['name']);
     $imageFilePath = $uploadDir . basename($imageFile['name']);
 
-    // Move uploaded files to the specified directory
     move_uploaded_file($sf10File['tmp_name'], $sf10FilePath);
     move_uploaded_file($imageFile['tmp_name'], $imageFilePath);
 
-    // Insert the learner's data into the database
-    $stmt = $conn->prepare("INSERT INTO learners (lrn, fname, lname, dob, gender, studentType, schoolAttended, gradelevel, guardianName, guardian, curriculum, sf10FilePath, imageFilePath, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("isssssssssss", $lrn, $fname, $lname, $dob, $gender, $studentType, $schoolAttended, $gradelevel, $guardianName, $guardian, $curriculum, $sf10FilePath, $imageFilePath, $status);
+    $insertSql = "INSERT INTO learners (lrn, fname, lname, dob, gender, studentType, schoolAttended, gradelevel, guardianName, guardian, curriculum, sf10FilePath, imageFilePath, status) 
+                  VALUES ('$lrn', '$fname', '$lname', '$dob', '$gender', '$studentType', '$schoolAttended', '$gradelevel', '$guardianName', '$guardian', '$curriculum', '$sf10FilePath', '$imageFilePath', 'Pending')";
     
-    if ($stmt->execute()) {
+    if ($conn->query($insertSql)) {
         echo '<script>alert("Learner added successfully!");</script>';
     } else {
-        echo '<script>alert("Error adding learner: ' . $stmt->error . '");</script>';
+        echo '<script>alert("Error adding learner: ' . $conn->error . '");</script>';
     }
-
-    $stmt->close();
 }
+
+// Fetch learners assigned to specific grades
 $students = [];
 $assigned_grades = [];
-
-// Split the assigned_to string by commas
 $grades = explode(',', $assigned_to);
 
-// Loop through each grade and extract the numeric part
 foreach ($grades as $grade) {
-    // Use regex to extract the number from the string
     if (preg_match('/\d+/', $grade, $matches)) {
-        $assigned_grades[] = (int)$matches[0]; // Convert to integer and add to the array
+        $assigned_grades[] = $matches[0]; 
     }
-}// Assuming assigned_to is a comma-separated string
+}
 
 if (!empty($assigned_grades)) {
-    $placeholders = implode(',', array_fill(0, count($assigned_grades), '?'));
-    $query = "SELECT * FROM learners WHERE grade_level IN ($placeholders) AND status = 'Approved'";
-    $stmt = $conn->prepare($query);
-    
-    $types = str_repeat('i', count($assigned_grades));
-    $stmt->bind_param($types, ...$assigned_grades);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    $assigned_grades_list = implode("','", $assigned_grades); 
+    $query = "SELECT * FROM learners WHERE grade_level IN ('$assigned_grades_list') AND status = 'Approved'";
+    $result = $conn->query($query);
 
     while ($row = $result->fetch_assoc()) {
         $students[] = $row;
     }
-    $stmt->close();
 }
-// Fetch existing learners
+
+// Fetch all Grade 7 learners
 $learners = [];
 $result = $conn->query("SELECT * FROM learners WHERE grade_level = '7' AND status = 'Approved'");
 if ($result->num_rows > 0) {
@@ -122,9 +99,9 @@ if ($result->num_rows > 0) {
     }
 }
 
-
 $conn->close();
 ?>
+
 
 <!DOCTYPE html>
 <html>
@@ -231,7 +208,7 @@ $conn->close();
   <header class="main-header">
     <a href="./" class="logo">
       <span class="logo-mini"><b>MIS</b></span>
-      <span class="logo-lg"><b>Teacher</b> Dashboard</span>
+      <span class="logo-lg"><b>Teacher </b> Dashboard</span>
     </a>
     <nav class="navbar navbar-static-top" role="navigation">
         <span class="sr-only">Toggle navigation</span>
@@ -259,104 +236,109 @@ $conn->close();
     </nav>
   </header>
   <aside class="main-sidebar">
-        <section class="sidebar">
-            <div class="sidebar-logo" style="text-align: center; padding: 10px;">
-                <img id="sidebar-logo" src="dist/img/macayo_logo.png" alt="DepEd Logo" style="max-width: 100px; margin-left: 50px; transition: all 0.9s ease;">
-            </div>
-            <ul class="sidebar-menu" data-widget="tree">
-                <li id="dashboard"><a href="teacher_dashboard.php"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a></li>
+  <section class="sidebar">
+    <div class="sidebar-logo" style="text-align: center; padding: 10px;">
+        <img id="sidebar-logo" src="dist/img/macayo_logo.png" alt="DepEd Logo" style="max-width: 100px; margin-left: 50px; transition: all 0.9s ease;">
+    </div>
+    <ul class="sidebar-menu" data-widget="tree">
+        <li id="dashboard"><a href="teacher_dashboard.php"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a></li>
+        <li id="about"><a href="teacher_promoted_lists.php"><i class="fa fa-info-circle"></i> <span>Promoted Management</span></a></li>
+        <li class="treeview">
+            <a href="#">
+                <i class="fa fa-folder"></i> <span>School Forms</span>
+                <span class="pull-right-container">
+                    <i class="fa fa-angle-left pull-right"></i>
+                </span>
+            </a>
+
+            <ul class="treeview-menu">
                 <li class="treeview">
                     <a href="#">
-                        <i class="fa fa-folder"></i> <span>School Forms</span>
+                        <i class="fa fa-file-text"></i> <span>Academic Records</span>
+                        <span class="pull-right-container">
+                            <i class="fa fa-angle-left pull-right"></i>
+                        </span>
+                    </a>
+
+                    <ul class="treeview-menu">
+                        <?php if ($assigned_to === 'Grade7'): ?>
+                            <li id="grade7">
+                                <a href="teacher_record_grade7.php"><i class="fa fa-user"></i> Grade 7</a>
+                            </li>
+                        <?php endif; ?>
+                        <?php if ($assigned_to === 'Grade8'): ?>
+                            <li id="grade8">
+                                <a href="teacher_record_grade8.php"><i class="fa fa-user"></i> Grade 8</a>
+                            </li>
+                        <?php endif; ?>
+                        <?php if ($assigned_to === 'Grade9'): ?>
+                            <li id="grade9">
+                                <a href="teacher_record_grade9.php"><i class="fa fa-user"></i> Grade 9</a>
+                            </li>
+                        <?php endif; ?>
+                        <?php if ($assigned_to === 'Grade10'): ?>
+                            <li id="grade10">
+                                <a href="teacher_record_grade10.php"><i class="fa fa-user"></i> Grade 10</a>
+                            </li>
+                        <?php endif; ?>
+                        <?php if ($assigned_to === 'Grade11'): ?>
+                            <li id="grade11">
+                                <a href="teacher_record_grade11.php"><i class="fa fa-user"></i> Grade 11</a>
+                            </li>
+                        <?php endif; ?>
+                        <?php if ($assigned_to === 'Grade12'): ?>
+                            <li id="grade12">
+                                <a href="teacher_record_grade12.php"><i class="fa fa-user"></i> Grade 12</a>
+                            </li>
+                        <?php endif; ?>
+                    </ul>
+
+                </li>
+                <li class="treeview">
+                    <a href="#">
+                        <i class="fa fa-file-text"></i> <span>Form 137</span>
                         <span class="pull-right-container">
                             <i class="fa fa-angle-left pull-right"></i>
                         </span>
                     </a>
                     <ul class="treeview-menu">
-                        <li class="treeview">
-                            <a href="#">
-                                <i class="fa fa-file-text"></i> <span>Academic Records</span>
-                                <span class="pull-right-container">
-                                    <i class="fa fa-angle-left pull-right"></i>
-                                </span>
-                            </a>
-                            <ul class="treeview-menu">
-                                <?php if (strpos($assigned_to, 'Grade7') !== false): ?>
-                                    <li id="grade7">
-                                        <a href="teacher_record_grade7.php"><i class="fa fa-user"></i> Grade 7</a>
-                                    </li>
-                                <?php endif; ?>
-                                <?php if (strpos($assigned_to, 'Grade8') !== false): ?>
-                                    <li id="grade8">
-                                        <a href="teacher_record_grade8.php"><i class="fa fa-user"></i> Grade 8</a>
-                                    </li>
-                                <?php endif; ?>
-                                <?php if (strpos($assigned_to, 'Grade9') !== false): ?>
-                                    <li id="grade9">
-                                        <a href="teacher_record_grade9.php"><i class="fa fa-user"></i> Grade 9</a>
-                                    </li>
-                                <?php endif; ?>
-                                <?php if (strpos($assigned_to, 'Grade10') !== false): ?>
-                                    <li id="grade10">
-                                        <a href="teacher_record_grade10.php"><i class="fa fa-user"></i> Grade 10</a>
-                                    </li>
-                                <?php endif; ?>
-                                <?php if (strpos($assigned_to, 'Grade11') !== false): ?>
-                                    <li id="grade11">
-                                        <a href="teacher_record_grade11.php"><i class="fa fa-user"></i> Grade 11</a>
-                                    </li>
-                                <?php endif; ?>
-                                <?php if (strpos($assigned_to, 'Grade12') !== false): ?>
-                                    <li id="grade12">
-                                        <a href="teacher_record_grade12.php"><i class="fa fa-user"></i> Grade 12</a>
-                                    </li>
-                                <?php endif; ?>
-                            </ul>
-                        </li>
-                        <li class="treeview">
-                            <a href="#">
-                                <i class="fa fa-file-text"></i> <span>Form 137</span>
-                                <span class="pull-right-container">
-                                    <i class="fa fa-angle-left pull-right"></i>
-                                </span>
-                            </a>
-                            <ul class="treeview-menu">
-                                <?php if (strpos($assigned_to, 'Grade7') !== false): ?>
-                                    <li id="form-137-grade7">
-                                        <a href="teacher_form-137_7.php"><i class="fa fa-user"></i> Grade 7</a>
-                                    </li>
-                                <?php endif; ?>
-                                <?php if (strpos($assigned_to, 'Grade8') !== false): ?>
-                                    <li id="form-137-grade8">
-                                        <a href="teacher_form-137_8.php"><i class="fa fa-user"></i> Grade 8</a>
-                                    </li>
-                                <?php endif; ?>
-                                <?php if (strpos($assigned_to, 'Grade9') !== false): ?>
-                                    <li id="form-137-grade9">
-                                        <a href="teacher_form-137_9.php"><i class="fa fa-user"></i> Grade 9</a>
-                                    </li>
-                                <?php endif; ?>
-                                <?php if (strpos($assigned_to, 'Grade10') !== false): ?>
-                                    <li id="form-137-grade10">
-                                        <a href="teacher_form-137_10.php"><i class="fa fa-user"></i> Grade 10</a>
-                                    </li>
-                                <?php endif; ?>
-                                <?php if (strpos($assigned_to, 'Grade11') !== false): ?>
-                                    <li id="form-137-grade11">
-                                        <a href="teacher_form-137_11.php"><i class="fa fa-user"></i> Grade 11</a>
-                                    </li>
-                                <?php endif; ?>
-                                <?php if (strpos($assigned_to, 'Grade12') !== false): ?>
-                                    <li id="form-137-grade12">
-                                        <a href="teacher_form-137_12.php"><i class="fa fa-user"></i> Grade 12</a>
-                                    </li>
-                                <?php endif; ?>
-                            </ul>
-                        </li>
+                        <?php if ($assigned_to === 'Grade7'): ?>
+                            <li id="form-137-grade7">
+                                <a href="teacher_form-137_7.php"><i class="fa fa-user"></i> Grade 7</a>
+                            </li>
+                        <?php endif; ?>
+                        <?php if ($assigned_to === 'Grade8'): ?>
+                            <li id="form-137-grade8">
+                                <a href="teacher_form-137_8.php"><i class="fa fa-user"></i> Grade 8</a>
+                            </li>
+                        <?php endif; ?>
+                        <?php if ($assigned_to === 'Grade9'): ?>
+                            <li id="form-137-grade9">
+                                <a href="teacher_form-137_9.php"><i class="fa fa-user"></i> Grade 9</a>
+                            </li>
+                        <?php endif; ?>
+                        <?php if ($assigned_to === 'Grade10'): ?>
+                            <li id="form-137-grade10">
+                                <a href="teacher_form-137_10.php"><i class="fa fa-user"></i> Grade 10</a>
+                            </li>
+                        <?php endif; ?>
+                        <?php if ($assigned_to === 'Grade11'): ?>
+                            <li id="form-137-grade11">
+                                <a href="teacher_form-137_11.php"><i class="fa fa-user"></i> Grade 11</a>
+                            </li>
+                        <?php endif; ?>
+                        <?php if ($assigned_to === 'Grade12'): ?>
+                            <li id="form-137-grade12">
+                                <a href="teacher_form-137_12.php"><i class="fa fa-user"></i> Grade 12</a>
+                            </li>
+                        <?php endif; ?>
                     </ul>
                 </li>
             </ul>
-        </section>
+        </li>
+    </ul>
+</section>
+
     </aside>
 
     <div class="content-wrapper" style="font-family: Arial, sans-serif; display: flex; align-items: center; justify-content: center; margin: 0; background-color: #f0f4f8;">
@@ -364,7 +346,7 @@ $conn->close();
         <h2 style="text-align: center; color: #2c3e50; font-size: 24px; margin-bottom: 25px; font-weight: bold;">Students Assigned to You</h2>
         
         <div class="card" style="margin-bottom: 25px; background-color: #ecf0f1; border: none; border-radius: 8px; padding: 20px; text-align: center; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
-            <h3 style="color: #34495e; font-size: 20px; font-weight: 500;">Total Students: <?= count($students) ?></h3>
+            <h3 style="color: #34495e; font-size: 20px; font-weight: 500;">Total Students: <?= count($students) ?> <?php echo $assigned_to; ?></h3>
         </div>
 
         <?php if (!empty($students)): ?>
