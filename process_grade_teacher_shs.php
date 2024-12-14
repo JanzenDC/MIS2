@@ -33,13 +33,13 @@ $grade = isset($_POST['grade']) ? sanitizeInput($_POST['grade']) : '';
 // Validate input
 if (empty($lrn)) {
     $_SESSION['error'] = "LRN is required.";
-    header("Location: view_academic_record.php");
+    header("Location: view_teacher_record.php");
     exit;
 }
 
 if (empty($grades)) {
     $_SESSION['error'] = "No grades submitted.";
-    header("Location: view_academic_record.php?lrn=" . urlencode($lrn));
+    header("Location: view_teacher_record.php?lrn=" . urlencode($lrn));
     exit;
 }
 
@@ -53,10 +53,10 @@ foreach ($grades as $subject_id => $grading) {
     $subject_id = intval($subject_id);
 
     // Prepare grade values (default to 0 for missing grades)
-    $first_grading = !empty($grading['first']) ? floatval($grading['first']) : 0;
-    $second_grading = !empty($grading['second']) ? floatval($grading['second']) : 0;
-    $third_grading = !empty($grading['third']) ? floatval($grading['third']) : 0;
-    $fourth_grading = !empty($grading['fourth']) ? floatval($grading['fourth']) : 0;
+    $first_grading = !empty($grading['first']) ? $grading['first'] : 0;
+    $second_grading = !empty($grading['second']) ? $grading['second'] : 0;
+    $third_grading = !empty($grading['third']) ? $grading['third'] : 0;
+    $fourth_grading = !empty($grading['fourth']) ? $grading['fourth'] : 0;
 
     // Calculate the final grade (average of grading periods)
     $final_grade = ($first_grading + $second_grading + $third_grading + $fourth_grading) / 4;
@@ -69,14 +69,14 @@ foreach ($grades as $subject_id => $grading) {
     $subjectCount++;
 
     // Delete any existing records for this LRN, subject, and grade level
-    $deleteSql = "DELETE FROM grades WHERE lrn = '{$lrn}' AND subject_id = {$subject_id} AND grade = '{$grade}'";
+    $deleteSql = "DELETE FROM shs_grades WHERE lrn = '{$lrn}' AND subject_id = {$subject_id} AND grade = '{$grade}'";
     if (!$conn->query($deleteSql)) {
         $_SESSION['error'] = "Error deleting existing grades: " . $conn->error;
         break;
     }
 
     // Insert new record
-    $insertSql = "INSERT INTO grades (
+    $insertSql = "INSERT INTO shs_grades (
         lrn, subject_id, first_grading, second_grading, third_grading, 
         fourth_grading, final_grade, status, adviser, school_year, section, grade
     ) VALUES (
@@ -105,6 +105,6 @@ if ($subjectCount > 0) {
 $conn->close();
 
 // Redirect back to the academic record view
-header("Location: view_academic_record.php?lrn=" . urlencode($lrn));
+header("Location: view_teacher_record.php?lrn=" . urlencode($lrn));
 exit;
 ?>

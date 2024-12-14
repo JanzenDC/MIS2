@@ -23,24 +23,17 @@ if (!isset($_SESSION['user_id'])) {
 
 $userId = $_SESSION['user_id']; // Assuming user ID is stored in session upon login
 
-// Fetch user role
-$query = "SELECT role FROM users WHERE id = ?";
-$stmt = $conn->prepare($query);
-$stmt->bind_param("i", $userId);
-$stmt->execute();
-$result = $stmt->get_result();
-$user = $result->fetch_assoc();
-
-if ($user) {
+// Fetch user role using raw SQL
+$userId = mysqli_real_escape_string($conn, $userId);
+$query = "SELECT role FROM users WHERE id = '$userId'";
+$result = $conn->query($query);
+$userRole = "No Role"; // Default role if not found
+if ($result && $result->num_rows > 0) {
+    $user = $result->fetch_assoc();
     $userRole = $user['role']; // Fetch the user's role
-} else {
-    $userRole = "No Role"; // Default role if not found
 }
-$stmt->close(); // Close the statement
 
-
-
-// Fetch academic records and learner's name
+// Fetch academic records and learner's name using raw SQL
 $lrn = isset($_GET['lrn']) ? $_GET['lrn'] : '';
 $first_name = '';
 $last_name = '';
@@ -54,41 +47,40 @@ $school_year = ''; // Initialize school year
 $section = ''; // Initialize section
 
 if ($lrn) {
-    // Fetch the learner's first name, last name, dob, gender, and grade level
-    $stmt = $conn->prepare("SELECT first_name, last_name, dob, gender, grade_level FROM learners WHERE lrn = ?");
-    $stmt->bind_param("s", $lrn);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    // Escape the learner number to prevent SQL injection
+    $lrn = mysqli_real_escape_string($conn, $lrn);
 
-    if ($row = $result->fetch_assoc()) {
+    // Fetch the learner's first name, last name, dob, gender, and grade level using raw SQL
+    $sqlLearner = "SELECT first_name, last_name, dob, gender, grade_level FROM learners WHERE lrn = '$lrn'";
+    $result = $conn->query($sqlLearner);
+
+    if ($result && $result->num_rows > 0) {
+        $row = $result->fetch_assoc();
         $first_name = $row['first_name'];
         $last_name = $row['last_name'];
         $dob = $row['dob']; // Fetch DOB
         $gender = $row['gender']; // Fetch gender
-        $grade_level = $row['grade_level']; // Fixed extra space issue
+        $grade_level = $row['grade_level'];
     }
+
     $subjects = [];
-    
-    // Escape user input to prevent SQL injection
+
+    // Fetch subject names for the grade level using raw SQL
     $grade_level = mysqli_real_escape_string($conn, $grade_level);
-    
-    // Raw SQL query
-    $sql = "SELECT id, subject_name FROM subjects WHERE grade_holder = '$grade_level'";
-    $result = $conn->query($sql);
-    
-    if ($result && $result->num_rows > 0) {
-        while ($row = $result->fetch_assoc()) {
+    $sqlSubjects = "SELECT id, subject_name FROM subjects WHERE grade_holder = '$grade_level'";
+    $resultSubjects = $conn->query($sqlSubjects);
+
+    if ($resultSubjects && $resultSubjects->num_rows > 0) {
+        while ($row = $resultSubjects->fetch_assoc()) {
             $subjects[$row['id']] = $row['subject_name']; // Store subject id and name
         }
     }
 
-    // Fetch academic records (grades) for the learner from the grades table
-    $stmt = $conn->prepare("SELECT subject_id, first_grading, second_grading, third_grading, fourth_grading, final_grade, status, general_average, adviser, school_year, section FROM grades WHERE lrn = ?");
-    $stmt->bind_param("s", $lrn);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    // Fetch academic records (grades) for the learner from the `shs_grades` table using raw SQL
+    $sqlGrades = "SELECT subject_id, first_grading, second_grading, third_grading, fourth_grading, final_grade, status, general_average, adviser, school_year, section FROM grades WHERE lrn = '$lrn'";
+    $resultGrades = $conn->query($sqlGrades);
 
-    while ($row = $result->fetch_assoc()) {
+    while ($row = $resultGrades->fetch_assoc()) {
         $grades[$row['subject_id']] = $row; // Store each subject's grading data using subject_id
         $generalAverage = $row['general_average']; // Fetch the general average
         
@@ -97,7 +89,6 @@ if ($lrn) {
         $school_year = $row['school_year'];
         $section = $row['section'];
     }
-    $stmt->close(); // Close the statement for fetching grades
 }
 
 $conn->close(); // Close the database connection
@@ -609,7 +600,8 @@ $conn->close(); // Close the database connection
                                 'status' => null
                             ];
                         ?>
-                            <tr>
+
+<tr>
                                 <td><?php echo htmlspecialchars($subjectName); ?></td>
                                 <td>
     <input type="number" name="grades[<?php echo htmlspecialchars($subjectId); ?>][first]" class="grade-input" min="0" max="100" 
@@ -639,6 +631,7 @@ $conn->close(); // Close the database connection
                                     <?php echo isset($subjectGrades['status']) ? htmlspecialchars($subjectGrades['status']) : ''; ?>
                                 </td>
                             </tr>
+                            
                         <?php endforeach; ?>
                     </tbody>
                     <tfoot>

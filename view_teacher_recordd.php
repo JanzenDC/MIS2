@@ -23,17 +23,35 @@ if (!isset($_SESSION['user_id'])) {
 
 $userId = $_SESSION['user_id']; // Assuming user ID is stored in session upon login
 
-// Fetch user role using raw SQL
-$userId = mysqli_real_escape_string($conn, $userId);
-$query = "SELECT role FROM users WHERE id = '$userId'";
-$result = $conn->query($query);
-$userRole = "No Role"; // Default role if not found
-if ($result && $result->num_rows > 0) {
-    $user = $result->fetch_assoc();
-    $userRole = $user['role']; // Fetch the user's role
-}
+// Fetch user role
+$query = "SELECT assigned_to, role FROM users WHERE id = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("i", $userId);
+$stmt->execute();
+$result = $stmt->get_result();
+$user = $result->fetch_assoc();
 
-// Fetch academic records and learner's name using raw SQL
+
+if ($user) {
+    $assigned_to = $user['assigned_to']; // fetch Grade7 - Grade12
+    $userRole = $user['role']; // Fetch the user's role
+} else {
+    $assigned_to = "";
+    $userRole = "No Role"; // Default role if not found
+}
+$grades = [
+    'Grade7' => 'teacher_record_grade7.php',
+    'Grade8' => 'teacher_record_grade8.php',
+    'Grade9' => 'teacher_record_grade9.php',
+    'Grade10' => 'teacher_record_grade10.php',
+    'Grade11' => 'teacher_record_grade11.php',
+    'Grade12' => 'teacher_record_grade12.php',
+];
+$stmt->close(); // Close the statement
+
+// Fetch subjects from the database (use `shs_subjects` table)
+
+// Fetch academic records and learner's name
 $lrn = isset($_GET['lrn']) ? $_GET['lrn'] : '';
 $first_name = '';
 $last_name = '';
@@ -47,15 +65,13 @@ $school_year = ''; // Initialize school year
 $section = ''; // Initialize section
 
 if ($lrn) {
-    // Escape the learner number to prevent SQL injection
-    $lrn = mysqli_real_escape_string($conn, $lrn);
+    // Fetch the learner's first name, last name, dob, gender, and grade level
+    $stmt = $conn->prepare("SELECT first_name, last_name, dob, gender, grade_level FROM learners WHERE lrn = ?");
+    $stmt->bind_param("s", $lrn);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-    // Fetch the learner's first name, last name, dob, gender, and grade level using raw SQL
-    $sqlLearner = "SELECT first_name, last_name, dob, gender, grade_level FROM learners WHERE lrn = '$lrn'";
-    $result = $conn->query($sqlLearner);
-
-    if ($result && $result->num_rows > 0) {
-        $row = $result->fetch_assoc();
+    if ($row = $result->fetch_assoc()) {
         $first_name = $row['first_name'];
         $last_name = $row['last_name'];
         $dob = $row['dob']; // Fetch DOB
@@ -64,23 +80,27 @@ if ($lrn) {
     }
 
     $subjects = [];
-
-    // Fetch subject names for the grade level using raw SQL
+    
+    // Escape user input to prevent SQL injection
     $grade_level = mysqli_real_escape_string($conn, $grade_level);
-    $sqlSubjects = "SELECT id, subject_name FROM shs_subjects WHERE grade_level = '$grade_level'";
-    $resultSubjects = $conn->query($sqlSubjects);
-
-    if ($resultSubjects && $resultSubjects->num_rows > 0) {
-        while ($row = $resultSubjects->fetch_assoc()) {
+    
+    // Raw SQL query
+    $sql = "SELECT id, subject_name FROM subjects WHERE grade_holder = '$grade_level'";
+    $result = $conn->query($sql);
+    
+    if ($result && $result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
             $subjects[$row['id']] = $row['subject_name']; // Store subject id and name
         }
     }
 
-    // Fetch academic records (grades) for the learner from the `shs_grades` table using raw SQL
-    $sqlGrades = "SELECT subject_id, first_grading, second_grading, third_grading, fourth_grading, final_grade, status, general_average, adviser, school_year, section FROM shs_grades WHERE lrn = '$lrn'";
-    $resultGrades = $conn->query($sqlGrades);
+    // Fetch academic records (grades) for the learner from the `shs_grades` table
+    $stmt = $conn->prepare("SELECT subject_id, first_grading, second_grading, third_grading, fourth_grading, final_grade, status, general_average, adviser, school_year, section FROM grades WHERE lrn = ?");
+    $stmt->bind_param("s", $lrn);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-    while ($row = $resultGrades->fetch_assoc()) {
+    while ($row = $result->fetch_assoc()) {
         $grades[$row['subject_id']] = $row; // Store each subject's grading data using subject_id
         $generalAverage = $row['general_average']; // Fetch the general average
         
@@ -89,13 +109,13 @@ if ($lrn) {
         $school_year = $row['school_year'];
         $section = $row['section'];
     }
+    $stmt->close(); // Close the statement for fetching grades
 }
 
 $conn->close(); // Close the database connection
+
+
 ?>
-
-
-
 
 <!DOCTYPE html>
 <html>
@@ -139,7 +159,7 @@ $conn->close(); // Close the database connection
   transition: all 0.9s ease; /* Smooth transition */
 }
 .content-wrapper::before {
-  content: '';
+
   position: absolute;
   top: 0;
   left: 0;
@@ -182,7 +202,7 @@ $conn->close(); // Close the database connection
         color: inherit; /* Keep text color same on hover */
     }
 
-        /* Main container styling */
+    /* Main container styling */
 .content {
     font-family: Arial, sans-serif;
    
@@ -326,182 +346,105 @@ $conn->close(); // Close the database connection
     </header>
 
     <aside class="main-sidebar">
-  <section class="sidebar">
-    <!-- Logo Section -->
-    <div class="sidebar-logo" style="text-align: center; padding: 10px;">
-      <img id="sidebar-logo" src="dist/img/macayo_logo.png" alt="DepEd Logo" style="max-width: 100px; margin-left: 50px; transition: all 0.9s ease;">
-    </div>
-        <ul class="sidebar-menu" data-widget="tree">
-            <li id="dashboard"><a href="ict_maintenance.php"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a></li>
-            <li class="treeview">
-    <a href="#">
-        <i class="fa fa-folder"></i> <span>Pending List</span>
-        <span class="pull-right-container">
-            <i class="fa fa-angle-left pull-right"></i>
-        </span>
-        
-    </a>
-    <ul class="treeview-menu">
-    <li class="treeview">
-                <a href="#">
-                    <i class="fa fa-cogs"></i> <span>Junior HS Student</span>
-                    <span class="pull-right-container">
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </span>
-                </a>
-                <ul class="treeview-menu">
-                <li id="student-maintenance-7"><a href="./ict_grade7_pending_list.php"><i class="fa fa-user"></i> Grade 7</a></li>
-<li id="student-maintenance-8"><a href="./ict_grade8_pending_list.php"><i class="fa fa-user"></i> Grade 8</a></li>
-<li id="student-maintenance-9"><a href="./ict_grade9_pending_list.php"><i class="fa fa-user"></i> Grade 9</a></li>
-<li id="student-maintenance-10"><a href="ict_grade10_pending_list.php"><i class="fa fa-user"></i> Grade 10</a></li>
-
-                </ul>
-            </li>
-            <li class="treeview">
-                <a href="#">
-                    <i class="fa fa-cogs"></i> <span>Senior HS Student</span>
-                    <span class="pull-right-container">
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </span>
-                </a>
-                <ul class="treeview-menu">
-                <li id="student-maintenance-11"><a href="ict_grade11_pending_list.php"><i class="fa fa-user"></i> Grade 11</a></li>
-                <li id="student-maintenance-12"><a href="ict_grade12_pending_list.php"><i class="fa fa-user"></i> Grade 12</a></li>
-
-                </ul>
-            </li>
-      </ul>
-</li>
-<li class="treeview">
-    <a href="#">
-        <i class="fa fa-folder"></i> <span>Approved List</span>
-        <span class="pull-right-container">
-            <i class="fa fa-angle-left pull-right"></i>
-        </span>
-        
-    </a>
-    <ul class="treeview-menu">
-    <li class="treeview">
-                <a href="#">
-                    <i class="fa fa-cogs"></i> <span>Junior HS Student</span>
-                    <span class="pull-right-container">
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </span>
-                </a>
-                <ul class="treeview-menu">
-                <li id="student-maintenance-7"><a href="./ict_grade7_approved_list.php"><i class="fa fa-user"></i> Grade 7</a></li>
-<li id="student-maintenance-8"><a href="./ict_grade8_approved_list.php"><i class="fa fa-user"></i> Grade 8</a></li>
-<li id="student-maintenance-9"><a href="./ict_grade9_approved_list.php"><i class="fa fa-user"></i> Grade 9</a></li>
-<li id="student-maintenance-10"><a href="./ict_grade10_approved_list.php"><i class="fa fa-user"></i> Grade 10</a></li>
-
-                </ul>
-            </li>
-            <li class="treeview">
-                <a href="#">
-                    <i class="fa fa-cogs"></i> <span>Senior HS Student</span>
-                    <span class="pull-right-container">
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </span>
-                </a>
-                <ul class="treeview-menu">
-                <li id="student-maintenance-11"><a href="./ict_grade11_approved_list.php"><i class="fa fa-user"></i> Grade 11</a></li>
-                <li id="student-maintenance-12"><a href="./ict_grade12_approved_list.php"><i class="fa fa-user"></i> Grade 12</a></li>
-
-                </ul>
-            </li>
-      </ul>
-</li>
-        
-<li class="treeview">
-    <a href="#">
-        <i class="fa fa-folder"></i> <span>School Forms</span>
-        <span class="pull-right-container">
-            <i class="fa fa-angle-left pull-right"></i>
-        </span>
-    </a>
-    <ul class="treeview-menu">
-        <li class="treeview">
-            <a href="#">
-                <i class="fa fa-file-text"></i> <span>Academic Records</span>
-                <span class="pull-right-container">
-                    <i class="fa fa-angle-left pull-right"></i>
-                </span>
-            </a>
-            <ul class="treeview-menu">
-                <!-- Junior HS Student Dropdown -->
+        <section class="sidebar">
+            <div class="sidebar-logo" style="text-align: center; padding: 10px;">
+                <img id="sidebar-logo" src="dist/img/macayo_logo.png" alt="DepEd Logo" style="max-width: 100px; margin-left: 50px; transition: all 0.9s ease;">
+            </div>
+            <ul class="sidebar-menu" data-widget="tree">
+                <li id="dashboard"><a href="teacher_dashboard.php"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a></li>
                 <li class="treeview">
                     <a href="#">
-                        <i class="fa fa-cogs"></i> <span>Junior HS Student</span>
+                        <i class="fa fa-folder"></i> <span>School Forms</span>
                         <span class="pull-right-container">
                             <i class="fa fa-angle-left pull-right"></i>
                         </span>
                     </a>
                     <ul class="treeview-menu">
-                        <li id="academic-grade7"><a href="academic_record_grade7.php"><i class="fa fa-user"></i> Grade 7</a></li>
-                        <li id="academic-grade8"><a href="academic_record_grade8.php"><i class="fa fa-user"></i> Grade 8</a></li>
-                        <li id="academic-grade9"><a href="academic_record_grade9.php"><i class="fa fa-user"></i> Grade 9</a></li>
-                        <li id="academic-grade10"><a href="academic_record_grade10.php"><i class="fa fa-user"></i> Grade 10</a></li>
-                    </ul>
-                </li>
-
-                <!-- Senior HS Student Dropdown -->
-                <li class="treeview">
-                    <a href="#">
-                        <i class="fa fa-cogs"></i> <span>Senior HS Student</span>
-                        <span class="pull-right-container">
-                            <i class="fa fa-angle-left pull-right"></i>
-                        </span>
-                    </a>
-                    <ul class="treeview-menu">
-                        <li id="academic-grade11"><a href="academic_record_grade11.php"><i class="fa fa-user"></i> Grade 11</a></li>
-                        <li id="academic-grade12"><a href="academic_record_grade12.php"><i class="fa fa-user"></i> Grade 12</a></li>
+                        <li class="treeview">
+                            <a href="#">
+                                <i class="fa fa-file-text"></i> <span>Academic Records</span>
+                                <span class="pull-right-container">
+                                    <i class="fa fa-angle-left pull-right"></i>
+                                </span>
+                            </a>
+                            <ul class="treeview-menu">
+                                <?php if (strpos($assigned_to, 'Grade7') !== false): ?>
+                                    <li id="grade7">
+                                        <a href="teacher_record_grade7.php"><i class="fa fa-user"></i> Grade 7</a>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if (strpos($assigned_to, 'Grade8') !== false): ?>
+                                    <li id="grade8">
+                                        <a href="teacher_record_grade8.php"><i class="fa fa-user"></i> Grade 8</a>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if (strpos($assigned_to, 'Grade9') !== false): ?>
+                                    <li id="grade9">
+                                        <a href="teacher_record_grade9.php"><i class="fa fa-user"></i> Grade 9</a>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if (strpos($assigned_to, 'Grade10') !== false): ?>
+                                    <li id="grade10">
+                                        <a href="teacher_record_grade10.php"><i class="fa fa-user"></i> Grade 10</a>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if (strpos($assigned_to, 'Grade11') !== false): ?>
+                                    <li id="grade11">
+                                        <a href="teacher_record_grade11.php"><i class="fa fa-user"></i> Grade 11</a>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if (strpos($assigned_to, 'Grade12') !== false): ?>
+                                    <li id="grade12">
+                                        <a href="teacher_record_grade12.php"><i class="fa fa-user"></i> Grade 12</a>
+                                    </li>
+                                <?php endif; ?>
+                            </ul>
+                        </li>
+                        <li class="treeview">
+                            <a href="#">
+                                <i class="fa fa-file-text"></i> <span>Form 137</span>
+                                <span class="pull-right-container">
+                                    <i class="fa fa-angle-left pull-right"></i>
+                                </span>
+                            </a>
+                            <ul class="treeview-menu">
+                                <?php if (strpos($assigned_to, 'Grade7') !== false): ?>
+                                    <li id="form-137-grade7">
+                                        <a href="teacher_form-137_7.php"><i class="fa fa-user"></i> Grade 7</a>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if (strpos($assigned_to, 'Grade8') !== false): ?>
+                                    <li id="form-137-grade8">
+                                        <a href="teacher_form-137_8.php"><i class="fa fa-user"></i> Grade 8</a>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if (strpos($assigned_to, 'Grade9') !== false): ?>
+                                    <li id="form-137-grade9">
+                                        <a href="teacher_form-137_9.php"><i class="fa fa-user"></i> Grade 9</a>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if (strpos($assigned_to, 'Grade10') !== false): ?>
+                                    <li id="form-137-grade10">
+                                        <a href="teacher_form-137_10.php"><i class="fa fa-user"></i> Grade 10</a>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if (strpos($assigned_to, 'Grade11') !== false): ?>
+                                    <li id="form-137-grade11">
+                                        <a href="teacher_form-137_11.php"><i class="fa fa-user"></i> Grade 11</a>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if (strpos($assigned_to, 'Grade12') !== false): ?>
+                                    <li id="form-137-grade12">
+                                        <a href="teacher_form-137_12.php"><i class="fa fa-user"></i> Grade 12</a>
+                                    </li>
+                                <?php endif; ?>
+                            </ul>
+                        </li>
                     </ul>
                 </li>
             </ul>
-        </li>
-        <li class="treeview">
-            <a href="#">
-                <i class="fa fa-file-text"></i> <span>Form 137</span>
-                <span class="pull-right-container">
-                    <i class="fa fa-angle-left pull-right"></i>
-                </span>
-            </a>
-            <ul class="treeview-menu">
-                <!-- Junior HS Student Dropdown -->
-                <li class="treeview">
-                    <a href="#">
-                        <i class="fa fa-cogs"></i> <span>Junior HS Student</span>
-                        <span class="pull-right-container">
-                            <i class="fa fa-angle-left pull-right"></i>
-                        </span>
-                    </a>
-                    <ul class="treeview-menu">
-                        <li id="academic-grade7"><a href="form-137.php"><i class="fa fa-user"></i> Grade 7</a></li>
-                        <li id="academic-grade8"><a href="form-137_8.php"><i class="fa fa-user"></i> Grade 8</a></li>
-                        <li id="academic-grade9"><a href="form-137_9.php"><i class="fa fa-user"></i> Grade 9</a></li>
-                        <li id="academic-grade10"><a href="form-137_10.php"><i class="fa fa-user"></i> Grade 10</a></li>
-                    </ul>
-                </li>
-
-                <!-- Senior HS Student Dropdown -->
-                <li class="treeview">
-                    <a href="#">
-                        <i class="fa fa-cogs"></i> <span>Senior HS Student</span>
-                        <span class="pull-right-container">
-                            <i class="fa fa-angle-left pull-right"></i>
-                        </span>
-                    </a>
-                    <ul class="treeview-menu">
-                        <li id="academic-grade11"><a href="form-137_11.php"><i class="fa fa-user"></i> Grade 11</a></li>
-                        <li id="academic-grade12"><a href="form-137_12.php"><i class="fa fa-user"></i> Grade 12</a></li>
-                    </ul>
-                </li>
-            </ul>    </ul>
-</li>
-
-
-    </section>
-</aside>
+        </section>
+    </aside>
 
 
 <div class="content-wrapper">
@@ -546,20 +489,20 @@ $conn->close(); // Close the database connection
         </div>
     </div>
 </section>
-    
+
+
+
     <section class="content">
     <div class="box box-primary">
         <div class="box-header with-border">
             <center><h3 class="box-title">REPORT ON LEARNING PROGRESS AND ACHIEVEMENT</h3></center>
         </div>
-        
-
         <div class="table table-bordered grade-table">
-            <form action="process_grades_shs.php" method="post">
-                <input type="hidden" name="lrn" value="<?php echo htmlspecialchars($lrn); ?>">
-                <input type='hidden' name="grade" value="<?php echo htmlspecialchars($grade_level); ?>">
+        <form action="process_grades_teacher.php" method="post">
+    <input type="hidden" name="lrn" value="<?php echo htmlspecialchars($lrn); ?>">
+    <input type='hidden' name="grade" value="<?php echo htmlspecialchars($grade_level); ?>">
 
-                <!-- Adviser, School Year, and Section Row -->
+   <!-- Adviser, School Year, and Section Row -->
 <div style="display: flex; margin-bottom: 10px; margin-left: 35px;">
     <div style="margin-right: 10px;">
         <strong>ADVISER:</strong>
@@ -577,22 +520,23 @@ $conn->close(); // Close the database connection
                style="width: 200px; border: none; border-bottom: 1px solid #000; outline: none;" required>
     </div>
 </div>
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th rowspan="2">Learning Areas</th>
-            <th colspan="4">Quarter</th>
-            <th rowspan="2">Final Rating</th>
-            <th rowspan="2">Remarks</th>
-        </tr>
-        <tr>
-            <th>1</th>
-            <th>2</th>
-            <th>3</th>
-            <th>4</th>
-        </tr>
-    </thead>
-    <tbody>
+
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th rowspan="2">Learning Areas</th>
+                            <th colspan="4">Quarter</th>
+                            <th rowspan="2">Final Rating</th>
+                            <th rowspan="2">Remarks</th>
+                        </tr>
+                        <tr>
+                            <th>1</th>
+                            <th>2</th>
+                            <th>3</th>
+                            <th>4</th>
+                        </tr>
+                    </thead>
+                    <tbody>
         <?php foreach ($subjects as $subjectId => $subjectName): 
             $subjectGrades = isset($grades[$subjectId]) ? $grades[$subjectId] : [
                 'first_grading' => null, 
@@ -603,52 +547,51 @@ $conn->close(); // Close the database connection
                 'status' => null
             ];
         ?>
-            <tr>
-                <td><?php echo htmlspecialchars($subjectName); ?></td>
-                <td>
-                    <input type="number" name="grades[<?php echo htmlspecialchars($subjectId); ?>][first]" class="grade-input" min="0" max="100" 
-                    value="<?php echo isset($subjectGrades['first_grading']) ? $subjectGrades['first_grading'] : ''; ?>" 
-                    oninput="computeFinalGrade(this)" 
-                    >
-                </td>
-                <td>
-                    <input type="number" name="grades[<?php echo htmlspecialchars($subjectId); ?>][second]" class="grade-input" min="0" max="100"
-                    value="<?php echo isset($subjectGrades['second_grading']) ? $subjectGrades['second_grading'] : ''; ?>" 
-                    oninput="computeFinalGrade(this)" 
-                    >
-                </td>
-                <td>
-                    <input type="number" name="grades[<?php echo htmlspecialchars($subjectId); ?>][third]" class="grade-input" min="0" max="100"
-                    value="<?php echo isset($subjectGrades['third_grading']) ? $subjectGrades['third_grading'] : ''; ?>" 
-                    oninput="computeFinalGrade(this)" 
-                    >
-                </td>
-                <td>
-                    <input type="number" name="grades[<?php echo htmlspecialchars($subjectId); ?>][fourth]" class="grade-input" min="0" max="100"
-                    value="<?php echo isset($subjectGrades['fourth_grading']) ? $subjectGrades['fourth_grading'] : ''; ?>" 
-                    oninput="computeFinalGrade(this)" 
-                    >
-                </td>
+        <tr>
+            <td><?php echo htmlspecialchars($subjectName); ?></td>
+            <td>
+                <input type="number" name="grades[<?php echo htmlspecialchars($subjectId); ?>][first]" class="grade-input" min="0" max="100" step="0.01"
+                value="<?php echo isset($subjectGrades['first_grading']) ? $subjectGrades['first_grading'] : ''; ?>" 
+                oninput="computeFinalGrade(this)" 
+                <?php echo (($subjectGrades['first_grading']) || ($subjectGrades['first_grading'] === '0' || $subjectGrades['first_grading'] === 0)) ? 'disabled' : ''; ?>>
+            </td>
+            <td>
+                <input type="number" name="grades[<?php echo htmlspecialchars($subjectId); ?>][second]" class="grade-input" min="0" max="100" step="0.01"
+                value="<?php echo isset($subjectGrades['second_grading']) ? $subjectGrades['second_grading'] : ''; ?>" 
+                oninput="computeFinalGrade(this)" 
+                <?php echo (($subjectGrades['second_grading']) || ($subjectGrades['second_grading'] === '0' || $subjectGrades['second_grading'] === 0)) ? 'disabled' : ''; ?>>
+            </td>
+            <td>
+                <input type="number" name="grades[<?php echo htmlspecialchars($subjectId); ?>][third]" class="grade-input" min="0" max="100" step="0.01"
+                value="<?php echo isset($subjectGrades['third_grading']) ? $subjectGrades['third_grading'] : ''; ?>" 
+                oninput="computeFinalGrade(this)" 
+                <?php echo (($subjectGrades['third_grading']) || ($subjectGrades['third_grading'] === '0' || $subjectGrades['third_grading'] === 0)) ? 'disabled' : ''; ?>>
+            </td>
+            <td>
+                <input type="number" name="grades[<?php echo htmlspecialchars($subjectId); ?>][fourth]" class="grade-input" min="0" max="100" step="0.01"
+                value="<?php echo isset($subjectGrades['fourth_grading']) ? $subjectGrades['fourth_grading'] : ''; ?>" 
+                oninput="computeFinalGrade(this)" 
+                <?php echo (($subjectGrades['fourth_grading']) || ($subjectGrades['fourth_grading'] === '0' || $subjectGrades['fourth_grading'] === 0)) ? 'disabled' : ''; ?>>
+            </td>
 
-                <td>
-                    <?php echo isset($subjectGrades['final_grade']) ? $subjectGrades['final_grade'] : ''; ?>
-                </td>
-                <td>
-                    <?php echo isset($subjectGrades['status']) ? htmlspecialchars($subjectGrades['status']) : ''; ?>
-                </td>
-            </tr>
+            <td>
+                <?php echo isset($subjectGrades['final_grade']) ? $subjectGrades['final_grade'] : ''; ?>
+            </td>
+            <td>
+                <?php echo isset($subjectGrades['status']) ? htmlspecialchars($subjectGrades['status']) : ''; ?>
+            </td>
+        </tr>
         <?php endforeach; ?>
     </tbody>
-    <tfoot>
-        <tr>
-            <td colspan="4"></td>
-            <td class="text-right"><strong>General Average:</strong></td>
-            <td><?php echo isset($generalAverage) ? htmlspecialchars($generalAverage) : ''; ?></td>
-        </tr>
-    </tfoot>
-</table>
+                    <tfoot>
+    <tr>
+        <td colspan="4"></td>
+        <td class="text-right"><strong>General Average:</strong></td>
+        <td><?php echo isset($generalAverage) ? htmlspecialchars($generalAverage) : ''; ?></td>
+    </tr>
+</tfoot>
 
-
+                </table>
                 <table class="table table-bordered">
                     <tr>
                         <th>Description</th>
@@ -677,19 +620,17 @@ $conn->close(); // Close the database connection
     </div>
     </div>
 </section>
-    
-    
-    <script src="bower_components/datatables.net/js/jquery.dataTables.min.js">
-    </script>
+
+  
+    <script src="bower_components/datatables.net/js/jquery.dataTables.min.js"></script>
     <script src="bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
     <footer class="main-footer">
     <div class="pull-right hidden-xs">
-    <b>Version</b> 1.0
+      <b>Version</b> 1.0
     </div>
     <strong>No Copyright Infringement &copy;.</strong> All rights reserved.
   </footer>
 </div>
-
 
 <script>
 function confirmLogout() {
@@ -697,7 +638,7 @@ function confirmLogout() {
         window.location.href = "login_page.php"; // Redirect to the logout page if confirmed
     }
 }
-</script>
 
+</script>
 </body>
 </html>

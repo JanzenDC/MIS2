@@ -377,7 +377,7 @@ $conn->close();
                 </td>
                 <td class="text-center"><?php echo $learner['status']; ?></td>
                 <td class="text-center">
-                <a href="view_teacher_record.php?lrn=<?php echo $learner['lrn']; ?>" class="btn btn-primary">View Records</a>
+                <a href="view_teacher_recordd.php?lrn=<?php echo $learner['lrn']; ?>" class="btn btn-primary">View Records</a>
             </td>
                 
 

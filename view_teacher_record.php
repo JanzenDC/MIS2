@@ -101,7 +101,12 @@ if ($lrn) {
     $stmt->close(); // Close the statement for fetching grades
 }
 
+if (!isset($assigned_to)) {
+    $assigned_to = ''; // Default value
+}
 $conn->close(); // Close the database connection
+
+
 ?>
 
 <!DOCTYPE html>
@@ -485,7 +490,7 @@ $conn->close(); // Close the database connection
             <center><h3 class="box-title">REPORT ON LEARNING PROGRESS AND ACHIEVEMENT</h3></center>
         </div>
         <div class="table table-bordered grade-table">
-        <form action="process_grades_teacher.php" method="post">
+        <form action="process_grade_teacher_shs.php" method="post">
     <input type="hidden" name="lrn" value="<?php echo htmlspecialchars($lrn); ?>">
     <input type='hidden' name="grade" value="<?php echo htmlspecialchars($grade_level); ?>">
 
@@ -524,16 +529,16 @@ $conn->close(); // Close the database connection
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($subjects as $subjectId => $subjectName): 
-                            $subjectGrades = isset($grades[$subjectId]) ? $grades[$subjectId] : [
-                                'first_grading' => null, 
-                                'second_grading' => null, 
-                                'third_grading' => null, 
-                                'fourth_grading' => null, 
-                                'final_grade' => null, 
-                                'status' => null
-                            ];
-                        ?>
+        <?php foreach ($subjects as $subjectId => $subjectName): 
+            $subjectGrades = isset($grades[$subjectId]) ? $grades[$subjectId] : [
+                'first_grading' => null, 
+                'second_grading' => null, 
+                'third_grading' => null, 
+                'fourth_grading' => null, 
+                'final_grade' => null, 
+                'status' => null
+            ];
+        ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($subjectName); ?></td>
                                 <td>
@@ -564,8 +569,9 @@ $conn->close(); // Close the database connection
                                     <?php echo isset($subjectGrades['status']) ? htmlspecialchars($subjectGrades['status']) : ''; ?>
                                 </td>
                             </tr>
-                        <?php endforeach; ?>
-                    </tbody>
+
+        <?php endforeach; ?>
+    </tbody>
                     <tfoot>
     <tr>
         <td colspan="4"></td>
@@ -614,6 +620,7 @@ $conn->close(); // Close the database connection
     <strong>No Copyright Infringement &copy;.</strong> All rights reserved.
   </footer>
 </div>
+
 <script>
 function confirmLogout() {
     if (confirm("Are you sure you want to log out?")) {

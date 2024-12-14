@@ -1,5 +1,5 @@
 <?php
-session_start(); // Start the session
+session_start();
 
 // Database connection setup
 $servername = "localhost"; 
@@ -7,7 +7,6 @@ $username = "root";
 $password = ""; 
 $dbname = "school_db"; 
 
-// Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
 
 // Check connection
@@ -34,103 +33,60 @@ $grade = isset($_POST['grade']) ? sanitizeInput($_POST['grade']) : '';
 // Validate input
 if (empty($lrn)) {
     $_SESSION['error'] = "LRN is required.";
-    header("Location: view_academic_record.php");
+    header("Location: view_teacher_recordd.php");
     exit;
 }
 
 if (empty($grades)) {
     $_SESSION['error'] = "No grades submitted.";
-    header("Location: view_academic_record.php?lrn=" . urlencode($lrn));
+    header("Location: view_teacher_recordd.php?lrn=" . urlencode($lrn));
     exit;
 }
 
-// Track total final grades and subject count for general average
+// Initialize variables for general average calculation
 $totalFinalGrades = 0;
 $subjectCount = 0;
 
 // Process each subject's grades
 foreach ($grades as $subject_id => $grading) {
-    // Sanitize and validate subject ID
+    // Sanitize subject ID
     $subject_id = intval($subject_id);
 
-    // Check if record already exists
-    $checkSql = "SELECT id FROM grades 
-                 WHERE lrn = '{$lrn}' 
-                 AND subject_id = {$subject_id} 
-                 AND grade = '{$grade}'";
-    $checkResult = $conn->query($checkSql);
+    // Prepare grade values (default to 0 for missing grades)
+    $first_grading = !empty($grading['first']) ? floatval($grading['first']) : 0;
+    $second_grading = !empty($grading['second']) ? floatval($grading['second']) : 0;
+    $third_grading = !empty($grading['third']) ? floatval($grading['third']) : 0;
+    $fourth_grading = !empty($grading['fourth']) ? floatval($grading['fourth']) : 0;
 
-    // Prepare grade values
-    $first_grading = !empty($grading['first']) ? floatval($grading['first']) : 'NULL';
-    $second_grading = !empty($grading['second']) ? floatval($grading['second']) : 'NULL';
-    $third_grading = !empty($grading['third']) ? floatval($grading['third']) : 'NULL';
-    $fourth_grading = !empty($grading['fourth']) ? floatval($grading['fourth']) : 'NULL';
+    // Calculate the final grade (average of grading periods)
+    $final_grade = ($first_grading + $second_grading + $third_grading + $fourth_grading) / 4;
 
-    // Initialize final grade and status
-    $final_grade = 'NULL';
-    $status = "''";
+    // Determine the status
+    $status = $final_grade >= 75 ? 'Passed' : 'Failed';
 
-    // Calculate final grade and status if all grading periods have values
-    if ($first_grading !== 'NULL' && $second_grading !== 'NULL' && 
-        $third_grading !== 'NULL' && $fourth_grading !== 'NULL') {
-        
-        $final_grade = "(" . $first_grading . " + " . $second_grading . " + " . 
-                       $third_grading . " + " . $fourth_grading . ") / 4";
-        
-        // Determine status based on final grade
-        $status = "CASE WHEN $final_grade >= 75 THEN 'Passed' ELSE 'Failed' END";
-        
-        // Track for general average calculation
-        $finalGradeValue = ($first_grading + $second_grading + $third_grading + $fourth_grading) / 4;
-        $totalFinalGrades += $finalGradeValue;
-        $subjectCount++;
+    // Track for general average calculation
+    $totalFinalGrades += $final_grade;
+    $subjectCount++;
+
+    // Delete any existing records for this LRN, subject, and grade level
+    $deleteSql = "DELETE FROM grades WHERE lrn = '{$lrn}' AND subject_id = {$subject_id} AND grade = '{$grade}'";
+    if (!$conn->query($deleteSql)) {
+        $_SESSION['error'] = "Error deleting existing grades: " . $conn->error;
+        break;
     }
 
-    // Determine if it's an insert or update based on existence check
-    if ($checkResult->num_rows > 0) {
-        // Update existing record
-        $sql = "UPDATE grades SET 
-                first_grading = COALESCE(NULLIF({$first_grading}, 'NULL'), first_grading),
-                second_grading = COALESCE(NULLIF({$second_grading}, 'NULL'), second_grading),
-                third_grading = COALESCE(NULLIF({$third_grading}, 'NULL'), third_grading),
-                fourth_grading = COALESCE(NULLIF({$fourth_grading}, 'NULL'), fourth_grading),
-                final_grade = CASE
-                    WHEN ({$first_grading} IS NOT NULL AND {$second_grading} IS NOT NULL AND 
-                          {$third_grading} IS NOT NULL AND {$fourth_grading} IS NOT NULL) THEN
-                        ($first_grading + $second_grading + $third_grading + $fourth_grading) / 4
-                    ELSE final_grade
-                END,
-                status = CASE
-                    WHEN ({$first_grading} IS NOT NULL AND {$second_grading} IS NOT NULL AND 
-                          {$third_grading} IS NOT NULL AND {$fourth_grading} IS NOT NULL) THEN 
-                        CASE 
-                            WHEN (($first_grading + $second_grading + $third_grading + $fourth_grading) / 4) >= 75 THEN 'Passed'
-                            ELSE 'Failed'
-                        END
-                    ELSE status
-                END,
-                adviser = '{$adviser}',
-                school_year = '{$school_year}',
-                section = '{$section}'
-                WHERE lrn = '{$lrn}' 
-                AND subject_id = {$subject_id} 
-                AND grade = '{$grade}'";
-    } else {
-        // Insert new record
-        $sql = "INSERT INTO grades (
-                lrn, subject_id, first_grading, second_grading, 
-                third_grading, fourth_grading, final_grade, 
-                status, adviser, school_year, section, grade
-            ) VALUES (
-                '{$lrn}', {$subject_id}, {$first_grading}, {$second_grading}, 
-                {$third_grading}, {$fourth_grading}, {$final_grade}, 
-                {$status}, '{$adviser}', '{$school_year}', '{$section}', '{$grade}'
-            )";
-    }
+    // Insert new record
+    $insertSql = "INSERT INTO grades (
+        lrn, subject_id, first_grading, second_grading, third_grading, 
+        fourth_grading, final_grade, status, adviser, school_year, section, grade
+    ) VALUES (
+        '{$lrn}', {$subject_id}, {$first_grading}, {$second_grading}, 
+        {$third_grading}, {$fourth_grading}, {$final_grade}, '{$status}', 
+        '{$adviser}', '{$school_year}', '{$section}', '{$grade}'
+    )";
 
-    // Execute the query
-    if (!$conn->query($sql)) {
-        $_SESSION['error'] = "Error processing grades: " . $conn->error;
+    if (!$conn->query($insertSql)) {
+        $_SESSION['error'] = "Error inserting grades: " . $conn->error;
         break;
     }
 }
@@ -138,24 +94,17 @@ foreach ($grades as $subject_id => $grading) {
 // Calculate and save general average if subjects exist
 if ($subjectCount > 0) {
     $generalAverage = $totalFinalGrades / $subjectCount;
-    
-    $avgSql = "
-        UPDATE grades 
-        SET general_average = {$generalAverage}
-        WHERE lrn = '{$lrn}'
-    ";
-    
-    if (!$conn->query($avgSql)) {
-        $_SESSION['error'] = "Error saving general average: " . $conn->error;
-    } else {
-        $_SESSION['success'] = "Grades and general average have been successfully saved.";
-    }
+
+    // Save general average (optional depending on your schema)
+    $_SESSION['success'] = "Grades and general average have been successfully saved.";
+} else {
+    $_SESSION['error'] = "No valid grades to calculate general average.";
 }
 
 // Close the database connection
 $conn->close();
 
 // Redirect back to the academic record view
-header("Location: view_teacher_record.php?lrn=" . urlencode($lrn));
+header("Location: view_teacher_recordd.php?lrn=" . urlencode($lrn));
 exit;
 ?>
