@@ -495,6 +495,8 @@ $conn->close();
                     <span>Card Maintenance</span>
                 </a>
             </li>
+<li id="about"><a href="teacher_promoted_lists.php"><i class="fa fa-info-circle"></i> <span>Promoted Management</span></a></li>
+
         </ul>
     </section>
 </aside>
