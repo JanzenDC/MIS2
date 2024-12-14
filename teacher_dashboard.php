@@ -359,46 +359,55 @@ $conn->close();
     </aside>
 
     <div class="content-wrapper" style="font-family: Arial, sans-serif; margin: 20px;">
-        <section class="content" style="margin-top: 30px; max-width: 800px; margin: auto; padding: 20px; background-color: #f9f9f9; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
-            <h2 style="text-align: center; color: #333; margin-bottom: 20px;">Students Assigned to You</h2>
-            <div class="card" style="margin-bottom: 20px; background-color: #ffffff; border: 1px solid #ddd; border-radius: 5px; padding: 15px;">
-                <div class="card-header" style="text-align: center;">
-                    <h3 style="color: #555;">Total Students: <?= count($students) ?></h3>
-                </div>
-            </div>
+    <section class="content" style="margin-top: 30px; max-width: 1000px; margin: auto; padding: 25px; background-color: #ffffff; border-radius: 10px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);">
+        <h2 style="text-align: center; color: #333; font-size: 24px; margin-bottom: 20px;">Students Assigned to You</h2>
+        <div class="card" style="margin-bottom: 20px; background-color: #f4f4f4; border: none; border-radius: 8px; padding: 20px; text-align: center; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
+            <h3 style="color: #444; font-size: 20px;">Total Students: <?= count($students) ?></h3>
+        </div>
 
-            <?php if (!empty($students)): ?>
-                <table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px;">
-                    <thead style="background-color: #f4f4f4; color: #333;">
-                        <tr>
-                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">LRN</th>
-                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">First Name</th>
-                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Last Name</th>
-                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">DOB</th>
-                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Gender</th>
-                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Grade Level</th>
-                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Status</th>
+        <?php if (!empty($students)): ?>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
+                <thead style="background-color: #007bff; color: #ffffff; text-align: left;">
+                    <tr>
+                        <th style="padding: 12px; border: 1px solid #ddd;">LRN</th>
+                        <th style="padding: 12px; border: 1px solid #ddd;">First Name</th>
+                        <th style="padding: 12px; border: 1px solid #ddd;">Middle Name</th>
+                        <th style="padding: 12px; border: 1px solid #ddd;">Last Name</th>
+                        <th style="padding: 12px; border: 1px solid #ddd;">Extension Name</th>
+                        <th style="padding: 12px; border: 1px solid #ddd;">Date of Birth</th>
+                        <th style="padding: 12px; border: 1px solid #ddd;">Age</th>
+                        <th style="padding: 12px; border: 1px solid #ddd;">Gender</th>
+                        <th style="padding: 12px; border: 1px solid #ddd;">Address</th>
+                        <th style="padding: 12px; border: 1px solid #ddd;">Grade Level</th>
+                        <th style="padding: 12px; border: 1px solid #ddd;">Guardian</th>
+                        <th style="padding: 12px; border: 1px solid #ddd;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($students as $student): ?>
+                        <tr style="background-color: #ffffff; color: #555; text-align: left;">
+                            <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['lrn']) ?></td>
+                            <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['first_name']) ?></td>
+                            <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['middle_name']) ?></td>
+                            <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['last_name']) ?></td>
+                            <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['name_extension']) ?></td>
+                            <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['dob']) ?></td>
+                            <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['age']) ?></td>
+                            <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['gender']) ?></td>
+                            <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['address']) ?></td>
+                            <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['grade_level']) ?></td>
+                            <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['guardian_name']) ?></td>
+                            <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['status']) ?></td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($students as $student): ?>
-                            <tr>
-                                <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['lrn']) ?></td>
-                                <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['first_name']) ?></td>
-                                <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['last_name']) ?></td>
-                                <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['dob']) ?></td>
-                                <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['gender']) ?></td>
-                                <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['grade_level']) ?></td>
-                                <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['status']) ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            <?php else: ?>
-                <p style="text-align: center; color: #888; font-size: 16px; margin-top: 20px;">No students assigned to you.</p>
-            <?php endif; ?>
-        </section>
-    </div>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php else: ?>
+            <p style="text-align: center; color: #888; font-size: 16px; margin-top: 20px;">No students assigned to you.</p>
+        <?php endif; ?>
+    </section>
+</div>
+
 
 
     
