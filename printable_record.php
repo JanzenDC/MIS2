@@ -40,13 +40,13 @@ $learner = $resultLearner->fetch_assoc();
 
 // Fetch grades along with adviser, school year, and section
 $sqlGrades = "
-    SELECT DISTINCT shs_subjects.subject_name, shs_grades.first_grading, shs_grades.second_grading, shs_grades.third_grading, 
-           shs_grades.fourth_grading, shs_grades.final_grade, shs_grades.status, shs_grades.general_average, shs_grades.section, 
-           shs_grades.school_year, shs_grades.adviser, learners.grade_level
-    FROM shs_grades
-    LEFT JOIN learners ON shs_grades.lrn = learners.lrn
-    LEFT JOIN shs_subjects ON learners.grade_level = shs_subjects.grade_level
-    WHERE shs_grades.lrn = '$lrn'";
+    SELECT DISTINCT subjects.subject_name, grades.first_grading, grades.second_grading, grades.third_grading, 
+           grades.fourth_grading, grades.final_grade, grades.status, grades.general_average, grades.section, 
+           grades.school_year, grades.adviser, grades.grade AS main_grade, learners.grade_level, learners.lrn
+    FROM grades
+    LEFT JOIN learners ON grades.lrn = learners.lrn
+    LEFT JOIN subjects ON learners.grade_level = subjects.grade_holder
+    WHERE learners.lrn = '$lrn'";
 $resultGrades = $conn->query($sqlGrades);
 
 $grades = [];
@@ -256,7 +256,7 @@ $conn->close();
                 <?php
                 // Filter grades for the current grade level
                 $filteredGrades = array_filter($grades, function ($gradeData) use ($grade) {
-                    return $gradeData['grade_level'] == $grade;
+                    return $gradeData['main_grade'] == $grade;
                 });
 
                 // Get the details for this grade level (if any grades exist)

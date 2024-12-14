@@ -370,6 +370,7 @@ $conn->close();
             </li>
             <li id="about"><a href="about.php"><i class="fa fa-info-circle"></i> <span>About</span></a></li>
             <li id="about"><a href="card-maintenance.php"><i class="fa fa-info-circle"></i> <span>Card Maintenance</span></a></li>
+            <li id="about"><a href="admin_promoted_lists.php"><i class="fa fa-info-circle"></i> <span>Promoted Management</span></a></li>
         </ul>
         
     </section>

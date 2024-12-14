@@ -429,12 +429,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <span>About</span>
                 </a>
             </li>
-            <li id="card-maintenance">
-                <a href="card-maintenance.php">
-                    <i class="fa fa-id-card"></i> 
-                    <span>Card Maintenance</span>
-                </a>
-            </li>
+            <li id="about"><a href="card-maintenance.php"><i class="fa fa-info-circle"></i> <span>Card Maintenance</span></a></li>
+            <li id="about"><a href="admin_promoted_lists.php"><i class="fa fa-info-circle"></i> <span>Promoted Management</span></a></li>
+
         </ul>
     </section>
 </aside>

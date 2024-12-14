@@ -536,6 +536,7 @@ $conn->close(); // Close the database connection
             </li>
             <li id="about"><a href="about.php"><i class="fa fa-info-circle"></i> <span>About</span></a></li>
             <li id="about"><a href="card-maintenance.php"><i class="fa fa-info-circle"></i> <span>Card Maintenance</span></a></li>
+            <li id="about"><a href="admin_promoted_lists.php"><i class="fa fa-info-circle"></i> <span>Promoted Management</span></a></li>
         </ul>
         
     </section>
@@ -593,6 +594,8 @@ $conn->close(); // Close the database connection
             <center><h3 class="box-title">REPORT ON LEARNING PROGRESS AND ACHIEVEMENT</h3></center>
         </div>
         <div class="table table-bordered grade-table">
+
+        
         <form action="process_grades_admin.php" method="post">
     <input type="hidden" name="lrn" value="<?php echo htmlspecialchars($lrn); ?>">
     <input type='hidden' name="grade" value="<?php echo htmlspecialchars($grade_level); ?>">
@@ -707,6 +710,17 @@ $conn->close(); // Close the database connection
                 </table>
                 <button type="submit" class="btn btn-primary">Save Grades</button>
             </form>
+            <div style='display: flex; gap: 20px;'>
+                <form action="admin_approve_process.php" method="post">
+                    <input type="hidden" name="lrn" value="<?php echo htmlspecialchars($lrn); ?>">
+                    <button type="submit" class="btn btn-primary">Approve</button>
+                </form>
+                <form action="admin_disapprove_process.php" method="post">
+                    <input type="hidden" name="lrn" value="<?php echo htmlspecialchars($lrn); ?>">
+                    <button type="submit" class="btn btn-primary">Disapprove</button>
+                </form>
+            </div>
+
         </div>
     </div>
     </div>
