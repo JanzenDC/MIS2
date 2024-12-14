@@ -166,7 +166,8 @@ $conn->close();
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 
 <!-- Include Bootstrap JS -->
-
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
 <!-- Include Bootstrap Datepicker JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
 
@@ -358,34 +359,36 @@ $conn->close();
         </section>
     </aside>
 
-    <div class="content-wrapper" style="font-family: Arial, sans-serif; margin: 20px;">
-    <section class="content" style="margin-top: 30px; max-width: 1000px; margin: auto; padding: 25px; background-color: #ffffff; border-radius: 10px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);">
-        <h2 style="text-align: center; color: #333; font-size: 24px; margin-bottom: 20px;">Students Assigned to You</h2>
-        <div class="card" style="margin-bottom: 20px; background-color: #f4f4f4; border: none; border-radius: 8px; padding: 20px; text-align: center; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
-            <h3 style="color: #444; font-size: 20px;">Total Students: <?= count($students) ?></h3>
+    <div class="content-wrapper" style="font-family: Arial, sans-serif; display: flex; align-items: center; justify-content: center; margin: 0; background-color: #f0f4f8;">
+    <section class="content" style="width: 100%; max-width: 1200px; margin-left: 400px; padding: 30px; background-color: #ffffff; border-radius: 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
+        <h2 style="text-align: center; color: #2c3e50; font-size: 24px; margin-bottom: 25px; font-weight: bold;">Students Assigned to You</h2>
+        
+        <div class="card" style="margin-bottom: 25px; background-color: #ecf0f1; border: none; border-radius: 8px; padding: 20px; text-align: center; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
+            <h3 style="color: #34495e; font-size: 20px; font-weight: 500;">Total Students: <?= count($students) ?></h3>
         </div>
 
         <?php if (!empty($students)): ?>
-            <table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
-                <thead style="background-color: #007bff; color: #ffffff; text-align: left;">
+            <table id="studentTable"     style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
+                <thead style="background-color: #3498db; color: #ffffff;">
                     <tr>
-                        <th style="padding: 12px; border: 1px solid #ddd;">LRN</th>
-                        <th style="padding: 12px; border: 1px solid #ddd;">First Name</th>
-                        <th style="padding: 12px; border: 1px solid #ddd;">Middle Name</th>
-                        <th style="padding: 12px; border: 1px solid #ddd;">Last Name</th>
-                        <th style="padding: 12px; border: 1px solid #ddd;">Extension Name</th>
-                        <th style="padding: 12px; border: 1px solid #ddd;">Date of Birth</th>
-                        <th style="padding: 12px; border: 1px solid #ddd;">Age</th>
-                        <th style="padding: 12px; border: 1px solid #ddd;">Gender</th>
-                        <th style="padding: 12px; border: 1px solid #ddd;">Address</th>
-                        <th style="padding: 12px; border: 1px solid #ddd;">Grade Level</th>
-                        <th style="padding: 12px; border: 1px solid #ddd;">Guardian</th>
-                        <th style="padding: 12px; border: 1px solid #ddd;">Status</th>
+                        <th style="padding: 12px; text-align: left;">LRN</th>
+                        <th style="padding: 12px; text-align: left;">First Name</th>
+                        <th style="padding: 12px; text-align: left;">Middle Name</th>
+                        <th style="padding: 12px; text-align: left;">Last Name</th>
+                        <th style="padding: 12px; text-align: left;">Extension Name</th>
+                        <th style="padding: 12px; text-align: left;">Date of Birth</th>
+                        <th style="padding: 12px; text-align: left;">Age</th>
+                        <th style="padding: 12px; text-align: left;">Gender</th>
+                        <th style="padding: 12px; text-align: left;">Address</th>
+                        <th style="padding: 12px; text-align: left;">Grade Level</th>
+                        <th style="padding: 12px; text-align: left;">Guardian</th>
+                        <th style="padding: 12px; text-align: left;">Guardian Relationship</th>
+                        <th style="padding: 12px; text-align: left;">Status</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($students as $student): ?>
-                        <tr style="background-color: #ffffff; color: #555; text-align: left;">
+                        <tr style="background-color: <?= $loopIndex % 2 === 0 ? '#ecf0f1' : '#ffffff'; ?>; color: #34495e;">
                             <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['lrn']) ?></td>
                             <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['first_name']) ?></td>
                             <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['middle_name']) ?></td>
@@ -397,20 +400,32 @@ $conn->close();
                             <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['address']) ?></td>
                             <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['grade_level']) ?></td>
                             <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['guardian_name']) ?></td>
+                            <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['guardian_relationship']) ?></td>
                             <td style="padding: 10px; border: 1px solid #ddd;"><?= htmlspecialchars($student['status']) ?></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
         <?php else: ?>
-            <p style="text-align: center; color: #888; font-size: 16px; margin-top: 20px;">No students assigned to you.</p>
+            <p style="text-align: center; color: #7f8c8d; font-size: 16px; margin-top: 20px;">No students assigned to you.</p>
         <?php endif; ?>
     </section>
 </div>
 
 
 
-    
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+<!-- Include DataTables and Buttons extensions -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+
 
 <script>
   document.querySelector('input[name="imageFile"]').addEventListener('change', function (e) {
@@ -428,16 +443,8 @@ $conn->close();
     
   </div>
 
-  
-  <script src="bower_components/datatables.net/js/jquery.dataTables.min.js">
-  </script>
-  <script src="bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
-  <footer class="main-footer">
-    <div class="pull-right hidden-xs">
-      <b>Version</b> 1.0
-    </div>
-    <strong>No Copyright Infringement &copy;.</strong> All rights reserved.
-  </footer>
+
+
 </div>
 
 <!-- Scripts -->
@@ -452,6 +459,33 @@ $conn->close();
 </script>
 
 
+<script>
+$(document).ready(function () {
+    $('#studentTable').DataTable({
+        dom: 'Bfrtip', // Define the buttons container
+        buttons: [
+            {
+                extend: 'excelHtml5',
+                title: 'Student Data'
+            },
+            {
+                extend: 'pdfHtml5',
+                title: 'Student Data',
+                orientation: 'landscape', // Optional: landscape or portrait
+                pageSize: 'A4' // Paper size
+            },
+            {
+                extend: 'print',
+                title: 'Student Data'
+            }
+        ],
+        paging: true,
+        searching: true,
+        order: [[0, 'asc']], // Default sorting by the first column
+        responsive: true
+    });
+});
+</script>
 
 <script>
   $(function () {
