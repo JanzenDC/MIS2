@@ -535,28 +535,28 @@ $conn->close();
                 </td>
                <td class="text-center">
                <button class="btn btn-info btn-sm view-btn" data-toggle="modal" data-target="#viewModal"
-               data-id="<?php echo $learner['id']; ?>"
-    data-lrn="<?php echo $learner['lrn']; ?>"
-    data-fname="<?php echo $learner['first_name']; ?>"
-    data-mname="<?php echo $learner['middle_name']; ?>"
-    data-lname="<?php echo $learner['last_name']; ?>"
-    data-exname="<?php echo $learner['name_extension']; ?>"
-    data-dob="<?php echo $learner['dob']; ?>"
-    data-age="<?php echo $learner['age']; ?>"
-    data-address="<?php echo $learner['address']; ?>"
-    data-cont_num="<?php echo $learner['cont_num']; ?>"
-    data-religion="<?php echo $learner['religion']; ?>"
-    data-gender="<?php echo $learner['gender']; ?>"
-    data-gradelevel="<?php echo $learner['grade_level']; ?>"
-    data-curriculum="<?php echo $learner['curriculum']; ?>"
-    data-schoolattended="<?php echo !empty($learner['other_school']) ? $learner['other_school'] : $learner['school_attended']; ?>"
-    data-studenttype="<?php echo $learner['student_type']; ?>" 
-    data-guardianname="<?php echo $learner['guardian_name']; ?>" 
-    data-guardianrelationship="<?php echo !empty($learner['other_guardian']) ? $learner['other_guardian'] : $learner['guardian_relationship']; ?>" 
-    data-status="<?php echo $learner['status']; ?>"
-    data-image="<?php echo $learner['image_file']; ?>">
-    <i class="fas fa-eye"></i>
-</button>
+                    data-id="<?php echo $learner['id']; ?>"
+                    data-lrn="<?php echo $learner['lrn']; ?>"
+                    data-fname="<?php echo $learner['first_name']; ?>"
+                    data-mname="<?php echo $learner['middle_name']; ?>"
+                    data-lname="<?php echo $learner['last_name']; ?>"
+                    data-exname="<?php echo $learner['name_extension']; ?>"
+                    data-dob="<?php echo $learner['dob']; ?>"
+                    data-age="<?php echo $learner['age']; ?>"
+                    data-address="<?php echo $learner['address']; ?>"
+                    data-cont_num="<?php echo $learner['cont_num']; ?>"
+                    data-religion="<?php echo $learner['religion']; ?>"
+                    data-gender="<?php echo $learner['gender']; ?>"
+                    data-gradelevel="<?php echo $learner['grade_level']; ?>"
+                    data-curriculum="<?php echo $learner['curriculum']; ?>"
+                    data-schoolattended="<?php echo !empty($learner['other_school']) ? $learner['other_school'] : $learner['school_attended']; ?>"
+                    data-studenttype="<?php echo $learner['student_type']; ?>" 
+                    data-guardianname="<?php echo $learner['guardian_name']; ?>" 
+                    data-guardianrelationship="<?php echo !empty($learner['other_guardian']) ? $learner['other_guardian'] : $learner['guardian_relationship']; ?>" 
+                    data-status="<?php echo $learner['status']; ?>"
+                    data-image="<?php echo $learner['image_file']; ?>">
+                    <i class="fas fa-eye"></i>
+                </button>
 
 
 
@@ -581,40 +581,100 @@ $conn->close();
   
    <!-- Modal for Viewing Student Details -->
    <div id="viewModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="viewModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="viewModalLabel">Student Information</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div class="text-center">
-          <img id="studentImage" src="" alt="1x1 Picture" style="width: 100px; height: 100px; object-fit: cover; margin-bottom: 20px;">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
+            <div class="modal-content" style="border-radius: 15px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);">
+                <!-- Modal Header -->
+                <div class="modal-header" style="background-color: #007bff; color: white; border-top-left-radius: 15px; border-top-right-radius: 15px; text-align: center;">
+                    <h2 class="modal-title" id="viewModalLabel">Student Information</h2>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body" style="padding: 30px;">
+                    <div class="text-center mb-4">
+                        <img id="studentImage" src="" alt="1x1 Picture" style="width: 120px; height: 120px; object-fit: cover; border-radius: 50%; border: 3px solid #007bff;">
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">LRN:</label>
+                            <span id="studentLrn" class="d-block text-muted"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Full Name:</label>
+                            <span id="studentName" class="d-block text-muted"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Date of Birth:</label>
+                            <span id="studentDob" class="d-block text-muted"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Age:</label>
+                            <span id="age" class="d-block text-muted"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Gender:</label>
+                            <span id="studentGender" class="d-block text-muted"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Address:</label>
+                            <span id="address" class="d-block text-muted"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Contact Number:</label>
+                            <span id="cont_num" class="d-block text-muted"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Religion:</label>
+                            <span id="religion" class="d-block text-muted"></span>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Grade Level:</label>
+                            <span id="studentGradeLevel" class="d-block text-muted"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Curriculum:</label>
+                            <span id="studentCurriculum" class="d-block text-muted"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Elementary School Attended:</label>
+                            <span id="studentschoolAttended" class="d-block text-muted"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Type of Learner:</label>
+                            <span id="studentType" class="d-block text-muted"></span>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Guardian Name:</label>
+                            <span id="studentGuardianName" class="d-block text-muted"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Guardian Relationship:</label>
+                            <span id="studentGuardianRelationship" class="d-block text-muted"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Status:</label>
+                            <span id="status" class="d-block text-muted"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer" style="background-color: #f1f1f1; border-bottom-left-radius: 15px; border-bottom-right-radius: 15px;">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" style="border-radius: 5px;">Close</button>
+                </div>
+            </div>
         </div>
-        <p><strong>LRN:</strong> <span id="studentLrn"></span></p>
-        <p><strong>Full Name:</strong> <span id="studentName"></span></p>
-        <p><strong>Date of Birth:</strong> <span id="studentDob"></span></p>
-        <p><strong>Age:</strong> <span id="age"></span></p>
-        <p><strong>Gender:</strong> <span id="studentGender"></span></p>
-        <p><strong>Address:</strong> <span id="address"></span></p>
-        <p><strong>Contact Number:</strong> <span id="cont_num"></span></p>
-        <p><strong>Religion:</strong> <span id="religion"></span></p>
-        <p><strong>Grade Level:</strong> <span id="studentGradeLevel"></span></p>
-        <p><strong>Curriculum:</strong> <span id="studentCurriculum"></span></p>
-        <p><strong>Elementary School Attended:</strong> <span id="studentschoolAttended"></span></p>
-        <p><strong>Type of Learner:</strong> <span id="studentType"></span></p>
-        <p><strong>Guardian Name:</strong> <span id="studentGuardianName"></span></p>
-        <p><strong>Guardian Relationship:</strong> <span id="studentGuardianRelationship"></span></p>
-        <p><strong>Status:</strong> <span id="status"></span></p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-      </div>
     </div>
-  </div>
-</div>
 
 
     <script src="bower_components/datatables.net/js/jquery.dataTables.min.js">
