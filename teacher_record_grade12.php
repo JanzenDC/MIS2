@@ -237,6 +237,7 @@ $conn->close();
             </div>
             <ul class="sidebar-menu" data-widget="tree">
                                 <li id="dashboard"><a href="teacher_dashboard.php"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a></li>
+                                <li id="about"><a href="teacher_promoted_lists.php"><i class="fa fa-info-circle"></i> <span>Promoted Management</span></a></li>
 
                 <li class="treeview">
                     <a href="#">

@@ -351,14 +351,17 @@ $conn->close(); // Close the database connection
                 <img id="sidebar-logo" src="dist/img/macayo_logo.png" alt="DepEd Logo" style="max-width: 100px; margin-left: 50px; transition: all 0.9s ease;">
             </div>
             <ul class="sidebar-menu" data-widget="tree">
-                <li id="dashboard"><a href="teacher_dashboard.php"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a></li>
-                <li class="treeview">
-                    <a href="#">
-                        <i class="fa fa-folder"></i> <span>School Forms</span>
-                        <span class="pull-right-container">
-                            <i class="fa fa-angle-left pull-right"></i>
-                        </span>
-                    </a>
+    <li id="dashboard"><a href="teacher_dashboard.php"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a></li>
+    <li id="about"><a href="teacher_promoted_lists.php"><i class="fa fa-info-circle"></i> <span>Promoted Management</span></a></li>
+    <li class="treeview">
+        <a href="#">
+            <i class="fa fa-folder"></i> <span>School Forms</span>
+            <span class="pull-right-container">
+                <i class="fa fa-angle-left pull-right"></i>
+            </span>
+        </a>
+
+        
                     <ul class="treeview-menu">
                         <li class="treeview">
                             <a href="#">
@@ -616,6 +619,16 @@ $conn->close(); // Close the database connection
                 </table>
                 <button type="submit" class="btn btn-primary">Save Grades</button>
             </form>
+            <div style='display: flex; gap: 20px;'>
+                <form action="teacher_approve_process.php" method="post">
+                    <input type="hidden" name="lrn" value="<?php echo htmlspecialchars($lrn); ?>">
+                    <button type="submit" class="btn btn-success">Promote</button>
+                </form>
+                <form action="teacher_disapprove_process.php" method="post">
+                    <input type="hidden" name="lrn" value="<?php echo htmlspecialchars($lrn); ?>">
+                    <button type="submit" class="btn btn-danger">Reject</button>
+                </form>
+            </div>
         </div>
     </div>
     </div>

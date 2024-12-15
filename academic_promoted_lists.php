@@ -20,6 +20,8 @@ if ($user) {
 }
 ?>
 
+
+
 <?php
 // Database connection (replace with your own connection parameters)
 $servername = "localhost"; // Your database server
@@ -63,14 +65,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
     move_uploaded_file($imageFile['tmp_name'], $imageFilePath);
 
     // Insert the learner's data into the database
-    $stmt = $conn->prepare("INSERT INTO learners (lrn, fname, lname, dob, gender, studentType, schoolAttended, gradelevel, guardianName, guardian, curriculum, sf10FilePath, imageFilePath) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("isssssssssss", $lrn, $fname, $lname, $dob, $gender, $studentType, $schoolAttended, $gradelevel, $guardianName, $guardian, $curriculum, $sf10FilePath, $imageFilePath);
+    $stmt = $conn->prepare("INSERT INTO learners (lrn, fname, lname, dob, gender, studentType, schoolAttended, gradelevel, guardianName, guardian, curriculum, sf10FilePath, imageFilePath, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("isssssssssss", $lrn, $fname, $lname, $dob, $gender, $studentType, $schoolAttended, $gradelevel, $guardianName, $guardian, $curriculum, $sf10FilePath, $imageFilePath, $status);
     
-    // Removed alert messages
     if ($stmt->execute()) {
-        // Optionally, you could log this action or handle it another way without user feedback.
+        echo '<script>alert("Learner added successfully!");</script>';
     } else {
-        // Optionally handle errors silently or log them.
+        echo '<script>alert("Error adding learner: ' . $stmt->error . '");</script>';
     }
 
     $stmt->close();
@@ -78,23 +79,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
 
 // Fetch existing learners
 $learners = [];
-$result = $conn->query("SELECT * FROM learners WHERE grade_level = '11'");
+$result = $conn->query("
+SELECT * FROM promoted_student_tbl pr
+LEFT JOIN learners le ON pr.learnersID = le.lrn
+");
 if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
         $learners[] = $row;
     }
 }
 
+
 $conn->close();
 ?>
-
 
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title> Grade 11 Students</title><link rel="icon" href="../img/favicon2.png">
+  <title> Form 137</title><link rel="icon" href="../img/favicon2.png">
   <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
   <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.min.css">
@@ -133,7 +137,7 @@ $conn->close();
 <!-- Include Bootstrap Datepicker JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
 
-  <style>
+<style>
    .content-wrapper {
   position: relative;
   z-index: 1; /* Ensures that the content is on top of the watermark */
@@ -193,7 +197,7 @@ $conn->close();
   <header class="main-header">
     <a href="./" class="logo">
       <span class="logo-mini"><b>MIS</b></span>
-      <span class="logo-lg"><b>GRADE 11</b> Students</span>
+      <span class="logo-lg"><b>GRADE 8</b> Students</span>
     </a>
     <nav class="navbar navbar-static-top" role="navigation">
         <span class="sr-only">Toggle navigation</span>
@@ -222,77 +226,126 @@ $conn->close();
   </header>
 
   <aside class="main-sidebar">
-  <section class="sidebar">
-    <!-- Logo Section -->
-    <div class="sidebar-logo" style="text-align: center; padding: 10px;">
-      <img id="sidebar-logo" src="dist/img/macayo_logo.png" alt="DepEd Logo" style="max-width: 100px; margin-left: 50px; transition: all 0.9s ease;">
-    </div>
-        <ul class="sidebar-menu" data-widget="tree">
-            <li id="dashboard"><a href="./"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a></li>
-            <li class="treeview">
-    <a href="#">
-        <i class="fa fa-folder"></i> <span>Student Status</span>
-        <span class="pull-right-container">
-            <i class="fa fa-angle-left pull-right"></i>
-        </span>
+    <section class="sidebar">
+        <div class="sidebar-logo text-center" style="padding: 15px;">
+            <img id="sidebar-logo" 
+                 src="dist/img/macayo_logo.png" 
+                 alt="DepEd Logo" 
+                 style="max-width: 100px; display: block; margin: 0 auto; transition: all 0.9s ease;">
+        </div>
         
-    </a>
-    <ul class="treeview-menu">
-    <li class="treeview">
-                <a href="#">
-                    <i class="fa fa-cogs"></i> <span>Junior HS Student</span>
-                    <span class="pull-right-container">
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </span>
+        <ul class="sidebar-menu" data-widget="tree">
+            <li id="dashboard">
+                <a href="./">
+                    <i class="fa fa-dashboard"></i> 
+                    <span>Dashboard</span>
                 </a>
-                <ul class="treeview-menu">
-                <li id="student-maintenance-7"><a href="./grade7_student.php"><i class="fa fa-user"></i> Grade 7</a></li>
-<li id="student-maintenance-8"><a href="./grade8_student.php"><i class="fa fa-user"></i> Grade 8</a></li>
-<li id="student-maintenance-9"><a href="./grade9_student.php"><i class="fa fa-user"></i> Grade 9</a></li>
-<li id="student-maintenance-10"><a href="./grade10_student.php"><i class="fa fa-user"></i> Grade 10</a></li>
-
-                </ul>
             </li>
-            <li class="treeview">
-                <a href="#">
-                    <i class="fa fa-cogs"></i> <span>Senior HS Student</span>
-                    <span class="pull-right-container">
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </span>
-                </a>
-                <ul class="treeview-menu">
-                <li id="student-maintenance-11"><a href="./grade11_student.php"><i class="fa fa-user"></i> Grade 11</a></li>
-                <li id="student-maintenance-12"><a href="./grade12_student.php"><i class="fa fa-user"></i> Grade 12</a></li>
-
-                </ul>
-            </li>
-      </ul>
-</li>
             
             <li class="treeview">
                 <a href="#">
-                    <i class="fa fa-cogs"></i> <span>Maintenance</span>
+                    <i class="fa fa-folder"></i> 
+                    <span>Student Status</span>
                     <span class="pull-right-container">
                         <i class="fa fa-angle-left pull-right"></i>
                     </span>
                 </a>
                 <ul class="treeview-menu">
-                <li class="treeview">
+                    <li class="treeview">
+                        <a href="#">
+                            <i class="fa fa-cogs"></i> 
+                            <span>Junior HS Student</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li id="student-maintenance-7">
+                                <a href="grade7_student.php">
+                                    <i class="fa fa-user"></i> Grade 7
+                                </a>
+                            </li>
+                            <li id="student-maintenance-8">
+                                <a href="grade8_student.php">
+                                    <i class="fa fa-user"></i> Grade 8
+                                </a>
+                            </li>
+                            <li id="student-maintenance-9">
+                                <a href="grade9_student.php">
+                                    <i class="fa fa-user"></i> Grade 9
+                                </a>
+                            </li>
+                            <li id="student-maintenance-10">
+                                <a href="grade10_student.php">
+                                    <i class="fa fa-user"></i> Grade 10
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    <li class="treeview">
+                        <a href="#">
+                            <i class="fa fa-cogs"></i> 
+                            <span>Senior HS Student</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li id="student-maintenance-11">
+                                <a href="grade11_student.php">
+                                    <i class="fa fa-user"></i> Grade 11
+                                </a>
+                            </li>
+                            <li id="student-maintenance-12">
+                                <a href="grade12_student.php">
+                                    <i class="fa fa-user"></i> Grade 12
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            
+            <li class="treeview">
                 <a href="#">
-                    <i class="fa fa-clipboard"></i> <span>Subject</span>
+                    <i class="fa fa-cogs"></i> 
+                    <span>Maintenance</span>
                     <span class="pull-right-container">
                         <i class="fa fa-angle-left pull-right"></i>
                     </span>
                 </a>
                 <ul class="treeview-menu">
-                    <li id="subject-maintenance"><a href="subject-maintenance.php"><i class="fa fa-book"></i> Junior High School</a></li>
-                    <li id="subject-maintenance1"><a href="subject-maintenance1.php"><i class="fa fa-graduation-cap"></i> Senior High School</a></li>
+                    <li class="treeview">
+                        <a href="#">
+                            <i class="fa fa-clipboard"></i> 
+                            <span>Subject</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li id="subject-maintenance">
+                                <a href="subject-maintenance.php">
+                                    <i class="fa fa-book"></i> Junior High School
+                                </a>
+                            </li>
+                            <li id="subject-maintenance1">
+                                <a href="subject-maintenance1.php">
+                                    <i class="fa fa-graduation-cap"></i> Senior High School
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    <li id="user-maintenance">
+                        <a href="account-maintenance.php">
+                            <i class="fa fa-user"></i> Account Maintenance
+                        </a>
+                    </li>
+                </ul>
+            </li>
 
-                </ul>
-            </li>
-                    <li id="user-maintenance"><a href="account-maintenance.php"><i class="fa fa-user"></i> Account Maintenance</a></li>
-                </ul>
-            </li>
             <li class="treeview">
                 <a href="#">
                     <i class="fa fa-folder"></i> 
@@ -433,37 +486,36 @@ $conn->close();
                     </li>
                 </ul>
             </li>
-            <li id="about"><a href="about.php"><i class="fa fa-info-circle"></i> <span>About</span></a></li>
+
+            <li id="about">
+                <a href="about.php">
+                    <i class="fa fa-info-circle"></i> 
+                    <span>About</span>
+                </a>
+            </li>
             <li id="about"><a href="card-maintenance.php"><i class="fa fa-info-circle"></i> <span>Card Maintenance</span></a></li>
-            <li id="about"><a href="admin_promoted_lists.php"><i class="fa fa-info-circle"></i> <span>Promoted Management</span></a></li>
+            <li id="about"><a href="academic_promoted_lists.php"><i class="fa fa-info-circle"></i> <span>Promoted Management</span></a></li>
+
         </ul>
-        
     </section>
 </aside>
 
   <div class="content-wrapper">
-  <section class="content-header">
-      <h1>
-        MACAYO INTEGRATED SCHOOL
-        <small>Grade 11 Students</small>
-      </h1>
-
+    <section class="content-header">
+      <ol class="breadcrumb">
+        <li><a href="#"><i class="fa fa-dashboard"></i> Student</a></li>
+        <li class="active"></li>
+      </ol>
     </section>
 <!-- Trigger Button -->
+<!-- Trigger Button -->
 <br>
-<br>
+<div class="text-center">
+  <h2>Promoted/Non Promoted Lists</h2>
+</div>
 
     
 
-<!-- Modal -->
-
-
-
-
-<!-- Optional: include Bootstrap's JS & jQuery if not already included in your project -->
-
-
-<!-- Script for image preview -->
 <script>
   document.querySelector('input[name="imageFile"]').addEventListener('change', function (e) {
     const reader = new FileReader();
@@ -477,234 +529,111 @@ $conn->close();
 
 <section class="content">
             <div class="row">
+                <div class="col-xs-12 ">
+                    <div class="alert alert-success alert-dismissible" style="display: none;" id="truemsg">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h4><i class="icon fa fa-check"></i> Success!</h4>
+                        New Subject Successfully added
+                    </div>
+
                     <div class="col-xs-12">
                     <div class="box box-primary">
                         <div class="box-header with-border">
                             <h3 class="box-title">All Students</h3>
                         </div>
                         <div class="box-body">
-                            <table id="example1" class="table table-bordered table-striped">
-                                <thead>
-    <tr>
-        <th class="text-center">#</th>
-        <th class="text-center">1x1 Picture</th>
-        <th class="text-center">LRN</th>
-        <th class="text-center">Full Name</th>
-        <th class="text-center">Date of Birth</th>
-        <th class="text-center">Gender</th>
-        <th class="text-center">Type of Learner</th>
-        <th class="text-center">Elementary School Attended</th>
-        <th class="text-center">Grade Level</th>
-        <th class="text-center">Curriculum</th>
-        <th class="text-center">SF10</th>
-        <th class="text-center">Action</th>
-    </tr>
-</thead>
-<tbody>
+
+<table id="example1" class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th class="text-center">#</th>
+            <th class="text-center">LRN</th>
+            <th class="text-center">Full Name</th>
+            <th class="text-center">Date of Birth</th>
+            <th class="text-center">Gender</th>
+            <th class="text-center">Promoted to</th>
+            <th class="text-center">Approve Status Teacher</th>
+            <th class="text-center">Approve Status ICT</th>
+            <th class="text-center">Action</th>
+        </tr>
+    </thead>
+    <tbody>
         <?php foreach ($learners as $index => $learner): ?>
             <tr>
                 <td class="text-center"><?php echo ($index + 1); ?></td>
-                <td class="text-center">
-                    <?php if (!empty($learner['image_file'])): ?>
-                        <img src="<?php echo $learner['image_file']; ?>" alt="1x1 Picture" style="width: 50px; height: 50px; object-fit: cover;">
-                    <?php else: ?>
-                        No image found
-                    <?php endif; ?>
-                </td>
                 <td class="text-center"><?php echo $learner['lrn']; ?></td>
                 <td class="text-center"><?php echo $learner['first_name'] . ' ' . $learner['last_name']; ?></td>
                 <td class="text-center"><?php echo $learner['dob']; ?></td>
                 <td class="text-center"><?php echo $learner['gender']; ?></td>
-                <td class="text-center"><?php echo $learner['student_type']; ?></td>
-                <td class="text-center"><?php echo $learner['school_attended']; ?></td>
-                <td class="text-center"><?php echo $learner['grade_level']; ?></td>
-                <td class="text-center"><?php echo $learner['curriculum']; ?></td>
+                <td class="text-center"><?php echo $learner['promotedTo']; ?></td>
+
+                <!-- Approve Status Teacher -->
                 <td class="text-center">
-                    <?php if (!empty($learner['sf10_file'])): ?>
-                        <a href="<?php echo $learner['sf10_file']; ?>" target="_blank">View</a>
-                    <?php else: ?>
-                        No SF10 file found
+                    <?php if ($learner['approveStatus'] == 1): ?>
+                        <span style="color: green; font-weight: bold;">Approved</span>
+                    <?php elseif ($learner['approveStatus'] == 0): ?>
+                        <span style="color: orange; font-weight: bold;">Pending</span>
+                    <?php elseif ($learner['approveStatus'] == 2): ?>
+                        <span style="color: red; font-weight: bold;">Disapproved</span>
                     <?php endif; ?>
                 </td>
-               <td class="text-center">
-               <button class="btn btn-info btn-sm view-btn" data-toggle="modal" data-target="#viewModal"
-                    data-id="<?php echo $learner['id']; ?>"
-                    data-lrn="<?php echo $learner['lrn']; ?>"
-                    data-fname="<?php echo $learner['first_name']; ?>"
-                    data-lname="<?php echo $learner['last_name']; ?>"
-                    data-dob="<?php echo $learner['dob']; ?>"
-                    data-gender="<?php echo $learner['gender']; ?>"
-                    data-gradelevel="<?php echo $learner['grade_level']; ?>"
-                    data-curriculum="<?php echo $learner['curriculum']; ?>"
-                    data-schoolattended="<?php echo !empty($learner['other_school']) ? $learner['other_school'] : $learner['school_attended']; ?>"
-                    data-studenttype="<?php echo $learner['student_type']; ?>" 
-                    data-guardianname="<?php echo $learner['guardian_name']; ?>" 
-                    data-guardianrelationship="<?php echo !empty($learner['other_guardian']) ? $learner['other_guardian'] : $learner['guardian_relationship']; ?>" 
-                    data-image="<?php echo $learner['image_file']; ?>">
-                    <i class="fas fa-eye"></i>
-                </button>
+
+                <!-- Approve Status ICT -->
+                <td class="text-center">
+                    <?php if ($learner['promotedStatus'] == 1): ?>
+                        <span style="color: green; font-weight: bold;">Approved</span>
+                    <?php elseif ($learner['promotedStatus'] == 0): ?>
+                        <span style="color: orange; font-weight: bold;">Pending</span>
+                    <?php elseif ($learner['promotedStatus'] == 2): ?>
+                        <span style="color: red; font-weight: bold;">Disapproved</span>
+                    <?php endif; ?>
+                </td>
+
+                <!-- Action buttons hidden for Grade 12 -->
+                <td class="text-center">
+                    <?php if ($learner['promotedTo'] != 12): ?>
+                        <a href="approve_status.php?proID=<?= $learner['proID']; ?>" class="btn btn-success" style="margin-right: 10px;">Approved</a>
+                    <?php endif; ?>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+    </tbody>
+</table>
 
 
 
-   
-    </button>
-    <button class="btn btn-danger btn-sm delete-btn" 
-        data-id="<?php echo $learner['id']; ?>" 
-        onclick="confirmDelete(<?php echo $learner['id']; ?>)">
-    <i class="fas fa-trash"></i>
-</button>
+                                <tbody>
+                                    <!-- Populate with subjects from database -->
+                                </tbody>
+                            </table>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-                  </td>
-                </tr>
-              <?php endforeach; ?>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
+    
   </div>
 
   
-   <!-- Modal for Viewing Student Details -->
-   <div id="viewModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="viewModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
-            <div class="modal-content" style="border-radius: 15px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);">
-                <!-- Modal Header -->
-                <div class="modal-header" style="background-color: #007bff; color: white; border-top-left-radius: 15px; border-top-right-radius: 15px; text-align: center;">
-                    <h2 class="modal-title" id="viewModalLabel">Student Information</h2>
-                </div>
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 
-                <!-- Modal Body -->
-                <div class="modal-body" style="padding: 30px;">
-                    <div class="text-center mb-4">
-                        <img id="studentImage" src="" alt="1x1 Picture" style="width: 120px; height: 120px; object-fit: cover; border-radius: 50%; border: 3px solid #007bff;">
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">LRN:</label>
-                            <span id="studentLrn" class="d-block text-muted"></span>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Full Name:</label>
-                            <span id="studentName" class="d-block text-muted"></span>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Date of Birth:</label>
-                            <span id="studentDob" class="d-block text-muted"></span>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Age:</label>
-                            <span id="age" class="d-block text-muted"></span>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Gender:</label>
-                            <span id="studentGender" class="d-block text-muted"></span>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Address:</label>
-                            <span id="address" class="d-block text-muted"></span>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Contact Number:</label>
-                            <span id="cont_num" class="d-block text-muted"></span>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Religion:</label>
-                            <span id="religion" class="d-block text-muted"></span>
-                        </div>
-                    </div>
-
-                    <hr>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Grade Level:</label>
-                            <span id="studentGradeLevel" class="d-block text-muted"></span>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Curriculum:</label>
-                            <span id="studentCurriculum" class="d-block text-muted"></span>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Elementary School Attended:</label>
-                            <span id="studentschoolAttended" class="d-block text-muted"></span>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Type of Learner:</label>
-                            <span id="studentType" class="d-block text-muted"></span>
-                        </div>
-                    </div>
-
-                    <hr>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Guardian Name:</label>
-                            <span id="studentGuardianName" class="d-block text-muted"></span>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Guardian Relationship:</label>
-                            <span id="studentGuardianRelationship" class="d-block text-muted"></span>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Status:</label>
-                            <span id="status" class="d-block text-muted"></span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Modal Footer -->
-                <div class="modal-footer" style="background-color: #f1f1f1; border-bottom-left-radius: 15px; border-bottom-right-radius: 15px;">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
+<!-- Include DataTables and Buttons extensions -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+  <footer class="main-footer">
+    <div class="pull-right hidden-xs">
+      <b>Version</b> 1.0
     </div>
+    <strong>No Copyright Infringement &copy;.</strong> All rights reserved.
+  </footer>
+</div>
 
-
-    <script src="bower_components/datatables.net/js/jquery.dataTables.min.js">
-    </script>
-    <script src="bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
-    <footer class="main-footer">
-      <div class="pull-right hidden-xs">
-        <b>Version</b> 1.0
-      </div>
-      <strong>No Copyright Infringement &copy;.</strong> All rights reserved.
-    </footer>
-  </div>
-
-<script>
-   $(document).on('click', '.view-btn', function() {
-    var id = $(this).data('id');
-    var lrn = $(this).data('lrn');
-    var fname = $(this).data('fname');
-    var lname = $(this).data('lname');
-    var dob = $(this).data('dob');
-    var gender = $(this).data('gender');
-    var gradeLevel = $(this).data('gradelevel');
-    var curriculum = $(this).data('curriculum');
-    var schoolAttended = $(this).data('schoolattended');
-    var studentType = $(this).data('studenttype');
-    var guardianName = $(this).data('guardianname');
-    var guardianRelationship = $(this).data('guardianrelationship'); // Make sure the case is correct
-    var image = $(this).data('image');
-
-    // Set modal content
-    $('#studentLrn').text(lrn);
-    $('#studentName').text(fname + ' ' + lname);
-    $('#studentDob').text(dob);
-    $('#studentGender').text(gender);
-    $('#studentGradeLevel').text(gradeLevel);
-    $('#studentCurriculum').text(curriculum);
-    $('#studentschoolAttended').text(schoolAttended);
-    $('#studentType').text(studentType);
-    $('#studentGuardianName').text(guardianName);
-    $('#studentGuardianRelationship').text(guardianRelationship); // Ensure this is set correctly
-    $('#studentImage').attr('src', image ? image : 'dist/img/default.png');
-});
-
-  </script>
+<!-- Scripts -->
 
 <script>
   $(function () {
@@ -714,28 +643,62 @@ $conn->close();
     });
   });
 </script>
-<script>
-    function confirmDelete(id) {
-        if (confirm('Are you sure you want to delete this student?')) {
-            // Redirect to delete_student.php with the learner ID
-            window.location.href = 'delete_student.php?id=' + id;
-        }
-    }
-</script>
-<script>
-    $(document).ready(function() {
-        <?php if (isset($_SESSION['message'])): ?>
-            $('#successModal').modal('show');
-        <?php endif; ?>
-    });
-  </script>
+
 
 
 <script>
   $(function () {
-    $('#example1').DataTable();
+    $('#example1').DataTable({
+        dom: 'Bfrtip', // Define the buttons container
+        buttons: [
+            {
+                extend: 'excelHtml5',
+                title: 'Student Data',
+                exportOptions: {
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7] // Specify the columns to include (index-based)
+                }
+            },
+            {
+                extend: 'pdfHtml5',
+                title: 'Student Data',
+                orientation: 'landscape', // Optional: landscape or portrait
+                pageSize: 'A4', // Paper size
+                exportOptions: {
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7] // Specify the columns to include (index-based)
+                }
+            },
+            {
+                extend: 'print',
+                title: 'Student Data',
+                exportOptions: {
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7] // Specify the columns to include (index-based)
+                }
+            }
+        ],
+        paging: true,
+        searching: true,
+        order: [[0, 'asc']], // Default sorting by the first column
+        responsive: true
+    });
+
     $('.select2').select2();
   });
+</script>
+
+<script>
+    function confirmAccept(id) {
+        if (confirm('Are you sure you want to accept this student?')) {
+            // Redirect to accept_student.php with the learner ID
+            window.location.href = 'accept_student.php?id=' + id;
+        }
+    }
+
+    function confirmReject(id) {
+        if (confirm('Are you sure you want to reject this student?')) {
+            // Redirect to reject_student.php with the learner ID
+            window.location.href = 'reject_student.php?id=' + id;
+        }
+    }
 </script>
 <script>
 function confirmLogout() {
@@ -749,8 +712,6 @@ $('.sidebar-toggle').on('click', function () {
     $('body').toggleClass('sidebar-collapse'); // Toggle the collapse class
 });
 </script>
-
-
 </body>
 
 </html>

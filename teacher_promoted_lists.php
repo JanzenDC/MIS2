@@ -1,25 +1,39 @@
 <?php
-// Include your database connection file
-include 'db_connection.php'; // Ensure you have your database connection established
+// Database connection
+$servername = "localhost"; 
+$username = "root"; 
+$password = ""; 
+$dbname = "school_db"; 
 
-session_start(); // Start the session to access session variables
-$userId = $_SESSION['user_id']; // Assuming user ID is stored in session upon login
+$conn = new mysqli($servername, $username, $password, $dbname);
 
-// Fetch user role only
-$query = "SELECT assigned_to, role FROM users WHERE id = ?";
-$stmt = $conn->prepare($query);
-$stmt->bind_param("i", $userId);
-$stmt->execute();
-$result = $stmt->get_result();
-$user = $result->fetch_assoc();
-
-if ($user) {
-    $assigned_to = $user['assigned_to']; // fetch Grade7 - Grade12
-    $userRole = $user['role']; // Fetch the user's role
-} else {
-    $assigned_to = "";
-    $userRole = "No Role"; // Default role if not found
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
 }
+
+session_start();
+$userId = $_SESSION['user_id']; 
+$assigned_to = "";
+$gradeNumber = null; // Variable to store extracted numeric value
+
+// Fetch user role and assigned grades
+$query = "SELECT assigned_to, role FROM users WHERE id = '$userId'";
+$result = $conn->query($query);
+if ($result->num_rows > 0) {
+    $user = $result->fetch_assoc();
+    $assigned_to = trim($user['assigned_to']);
+    $userRole = $user['role']; 
+
+    // Extract numeric grade from assigned_to
+    if (preg_match('/\d+/', $assigned_to, $matches)) {
+        $gradeNumber = $matches[0]; // Store numeric part in a variable
+    }
+
+} else {
+    $userRole = "No Role"; 
+}
+
+
 $grades = [
     'Grade7' => 'teacher_record_grade7.php',
     'Grade8' => 'teacher_record_grade8.php',
@@ -89,7 +103,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
 
 // Fetch existing learners
 $learners = [];
-$result = $conn->query("SELECT * FROM learners WHERE grade_level = '10' AND status = 'Approved'");
+$result = $conn->query("
+SELECT * FROM promoted_student_tbl pr
+LEFT JOIN learners le ON pr.learnersID = le.lrn WHERE le.grade_level = '$gradeNumber'
+");
 if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
         $learners[] = $row;
@@ -204,7 +221,7 @@ $conn->close();
   <header class="main-header">
     <a href="./" class="logo">
       <span class="logo-mini"><b>MIS</b></span>
-      <span class="logo-lg"><b>GRADE 10</b> Students</span>
+      <span class="logo-lg"><b>GRADE 8</b> Students</span>
     </a>
     <nav class="navbar navbar-static-top" role="navigation">
         <span class="sr-only">Toggle navigation</span>
@@ -234,21 +251,21 @@ $conn->close();
 
   <aside class="main-sidebar">
         <section class="sidebar">
-            <!-- Logo Section -->
             <div class="sidebar-logo" style="text-align: center; padding: 10px;">
                 <img id="sidebar-logo" src="dist/img/macayo_logo.png" alt="DepEd Logo" style="max-width: 100px; margin-left: 50px; transition: all 0.9s ease;">
             </div>
             <ul class="sidebar-menu" data-widget="tree">
-                                <li id="dashboard"><a href="teacher_dashboard.php"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a></li>
-                                <li id="about"><a href="teacher_promoted_lists.php"><i class="fa fa-info-circle"></i> <span>Promoted Management</span></a></li>
+    <li id="dashboard"><a href="teacher_dashboard.php"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a></li>
+    <li id="about"><a href="teacher_promoted_lists.php"><i class="fa fa-info-circle"></i> <span>Promoted Management</span></a></li>
+    <li class="treeview">
+        <a href="#">
+            <i class="fa fa-folder"></i> <span>School Forms</span>
+            <span class="pull-right-container">
+                <i class="fa fa-angle-left pull-right"></i>
+            </span>
+        </a>
 
-                <li class="treeview">
-                    <a href="#">
-                        <i class="fa fa-folder"></i> <span>School Forms</span>
-                        <span class="pull-right-container">
-                            <i class="fa fa-angle-left pull-right"></i>
-                        </span>
-                    </a>
+        
                     <ul class="treeview-menu">
                         <li class="treeview">
                             <a href="#">
@@ -258,14 +275,36 @@ $conn->close();
                                 </span>
                             </a>
                             <ul class="treeview-menu">
-                                <!-- Junior HS Student Dropdown -->
-                                <?php foreach ($grades as $grade => $link): ?>
-                                    <?php if (strpos($assigned_to, $grade) !== false): ?>
-                                        <li id="<?= strtolower(str_replace(' ', '-', $grade)) ?>">
-                                            <a href="<?= $link ?>"><i class="fa fa-user"></i> <?= $grade ?></a>
-                                        </li>
-                                    <?php endif; ?>
-                                <?php endforeach; ?>
+                                <?php if (strpos($assigned_to, 'Grade7') !== false): ?>
+                                    <li id="grade7">
+                                        <a href="teacher_record_grade7.php"><i class="fa fa-user"></i> Grade 7</a>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if (strpos($assigned_to, 'Grade8') !== false): ?>
+                                    <li id="grade8">
+                                        <a href="teacher_record_grade8.php"><i class="fa fa-user"></i> Grade 8</a>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if (strpos($assigned_to, 'Grade9') !== false): ?>
+                                    <li id="grade9">
+                                        <a href="teacher_record_grade9.php"><i class="fa fa-user"></i> Grade 9</a>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if (strpos($assigned_to, 'Grade10') !== false): ?>
+                                    <li id="grade10">
+                                        <a href="teacher_record_grade10.php"><i class="fa fa-user"></i> Grade 10</a>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if (strpos($assigned_to, 'Grade11') !== false): ?>
+                                    <li id="grade11">
+                                        <a href="teacher_record_grade11.php"><i class="fa fa-user"></i> Grade 11</a>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if (strpos($assigned_to, 'Grade12') !== false): ?>
+                                    <li id="grade12">
+                                        <a href="teacher_record_grade12.php"><i class="fa fa-user"></i> Grade 12</a>
+                                    </li>
+                                <?php endif; ?>
                             </ul>
                         </li>
                         <li class="treeview">
@@ -276,14 +315,36 @@ $conn->close();
                                 </span>
                             </a>
                             <ul class="treeview-menu">
-                                <!-- Junior HS Student Dropdown -->
-                                <?php foreach ($grades as $grade => $link): ?>
-                                    <?php if (strpos($assigned_to, $grade) !== false): ?>
-                                        <li id="form-137-<?= strtolower(str_replace(' ', '-', $grade)) ?>">
-                                            <a href="teacher_form-137_<?= strtolower(substr($grade, -1)) ?>.php"><i class="fa fa-user"></i> <?= $grade ?></a>
-                                        </li>
-                                    <?php endif; ?>
-                                <?php endforeach; ?>
+                                <?php if (strpos($assigned_to, 'Grade7') !== false): ?>
+                                    <li id="form-137-grade7">
+                                        <a href="teacher_form-137_7.php"><i class="fa fa-user"></i> Grade 7</a>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if (strpos($assigned_to, 'Grade8') !== false): ?>
+                                    <li id="form-137-grade8">
+                                        <a href="teacher_form-137_8.php"><i class="fa fa-user"></i> Grade 8</a>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if (strpos($assigned_to, 'Grade9') !== false): ?>
+                                    <li id="form-137-grade9">
+                                        <a href="teacher_form-137_9.php"><i class="fa fa-user"></i> Grade 9</a>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if (strpos($assigned_to, 'Grade10') !== false): ?>
+                                    <li id="form-137-grade10">
+                                        <a href="teacher_form-137_10.php"><i class="fa fa-user"></i> Grade 10</a>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if (strpos($assigned_to, 'Grade11') !== false): ?>
+                                    <li id="form-137-grade11">
+                                        <a href="teacher_form-137_11.php"><i class="fa fa-user"></i> Grade 11</a>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if (strpos($assigned_to, 'Grade12') !== false): ?>
+                                    <li id="form-137-grade12">
+                                        <a href="teacher_form-137_12.php"><i class="fa fa-user"></i> Grade 12</a>
+                                    </li>
+                                <?php endif; ?>
                             </ul>
                         </li>
                     </ul>
@@ -294,17 +355,16 @@ $conn->close();
 
   <div class="content-wrapper">
     <section class="content-header">
-      <h1>MACAYO INTEGRATED SCHOOL <small> GRADE 10 Students</small></h1>
       <ol class="breadcrumb">
         <li><a href="#"><i class="fa fa-dashboard"></i> Student</a></li>
-        <li class="active">GRADE 10 Students</li>
+        <li class="active"></li>
       </ol>
     </section>
 <!-- Trigger Button -->
 <!-- Trigger Button -->
 <br>
 <div class="text-center">
-  <h2>FORM 137 RECORDS</h2>
+  <h2>Promoted/Non Promoted Lists</h2>
 </div>
 
     
@@ -335,63 +395,59 @@ $conn->close();
                             <h3 class="box-title">All Students</h3>
                         </div>
                         <div class="box-body">
-                            <table id="example1" class="table table-bordered table-striped">
-                                <thead>
-    <tr>
-        <th class="text-center">#</th>
-        <th class="text-center">1x1 Picture</th>
-        <th class="text-center">LRN</th>
-        <th class="text-center">Full Name</th>
-        <th class="text-center">Date of Birth</th>
-        <th class="text-center">Gender</th>
-        <th class="text-center">Type of Learner</th>
-        <th class="text-center">Elementary School Attended</th>
-        <th class="text-center">Curriculum</th>
-        <th class="text-center">SF10</th>
-        <th class="text-center">Status</th>
-        <th class="text-center">Action</th>
-    </tr>
-</thead>
-<tbody>
+
+<table id="example1" class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th class="text-center">#</th>
+            <th class="text-center">LRN</th>
+            <th class="text-center">Full Name</th>
+            <th class="text-center">Date of Birth</th>
+            <th class="text-center">Gender</th>
+            <th class="text-center">Promoted to</th>
+            <th class="text-center">Approve Status Teacher</th>
+            <th class="text-center">Approve Status ICT</th>
+        </tr>
+    </thead>
+    <tbody>
         <?php foreach ($learners as $index => $learner): ?>
             <tr>
                 <td class="text-center"><?php echo ($index + 1); ?></td>
-                <td class="text-center">
-                    <?php if (!empty($learner['image_file'])): ?>
-                        <img src="<?php echo $learner['image_file']; ?>" alt="1x1 Picture" style="width: 50px; height: 50px; object-fit: cover;">
-                    <?php else: ?>
-                        No image found
-                    <?php endif; ?>
-                </td>
                 <td class="text-center"><?php echo $learner['lrn']; ?></td>
                 <td class="text-center"><?php echo $learner['first_name'] . ' ' . $learner['last_name']; ?></td>
                 <td class="text-center"><?php echo $learner['dob']; ?></td>
                 <td class="text-center"><?php echo $learner['gender']; ?></td>
-                <td class="text-center"><?php echo $learner['student_type']; ?></td>
+                <td class="text-center"><?php echo $learner['promotedTo']; ?></td>
+
+                <!-- Approve Status Teacher -->
                 <td class="text-center">
-    <?php echo !empty($learner['other_school']) ? $learner['other_school'] : $learner['school_attended']; ?>
-</td>
-                <td class="text-center"><?php echo $learner['curriculum']; ?></td>
-                <td class="text-center">
-                    <?php if (!empty($learner['sf10_file'])): ?>
-                        <a href="<?php echo $learner['sf10_file']; ?>" target="_blank">View</a>
-                    <?php else: ?>
-                        No SF10 file found
+                    <?php if ($learner['approveStatus'] == 1): ?>
+                        <span style="color: green; font-weight: bold;">Approved</span>
+                    <?php elseif ($learner['approveStatus'] == 0): ?>
+                        <span style="color: orange; font-weight: bold;">Pending</span>
+                    <?php elseif ($learner['approveStatus'] == 2): ?>
+                        <span style="color: red; font-weight: bold;">Disapproved</span>
                     <?php endif; ?>
                 </td>
-                <td class="text-center"><?php echo $learner['status']; ?></td>
+
+                <!-- Approve Status ICT -->
                 <td class="text-center">
-                <a href="printable_record.php?lrn=<?= $learner['lrn']; ?>&grade=<?= $learner['grade_level']; ?>" class="btn btn-primary" style="margin-right: 10px;">Printable SF10</a>
-                <a href="printable_report_card.php?lrn=<?= $learner['lrn']; ?>&grade=<?= $learner['grade_level']; ?>" class="btn btn-primary">Printable SF9</a>
-            </td>
+                    <?php if ($learner['promotedStatus'] == 1): ?>
+                        <span style="color: green; font-weight: bold;">Approved</span>
+                    <?php elseif ($learner['promotedStatus'] == 0): ?>
+                        <span style="color: orange; font-weight: bold;">Pending</span>
+                    <?php elseif ($learner['promotedStatus'] == 2): ?>
+                        <span style="color: red; font-weight: bold;">Disapproved</span>
+                    <?php endif; ?>
+                </td>
+
                 
-
-
             </tr>
         <?php endforeach; ?>
     </tbody>
-
 </table>
+
+
 
                                 <tbody>
                                     <!-- Populate with subjects from database -->
@@ -406,9 +462,16 @@ $conn->close();
   </div>
 
   
-  <script src="bower_components/datatables.net/js/jquery.dataTables.min.js">
-  </script>
-  <script src="bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+<!-- Include DataTables and Buttons extensions -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
   <footer class="main-footer">
     <div class="pull-right hidden-xs">
       <b>Version</b> 1.0
@@ -432,7 +495,39 @@ $conn->close();
 
 <script>
   $(function () {
-    $('#example1').DataTable();
+    $('#example1').DataTable({
+        dom: 'Bfrtip', // Define the buttons container
+        buttons: [
+            {
+                extend: 'excelHtml5',
+                title: 'Student Data',
+                exportOptions: {
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7] // Specify the columns to include (index-based)
+                }
+            },
+            {
+                extend: 'pdfHtml5',
+                title: 'Student Data',
+                orientation: 'landscape', // Optional: landscape or portrait
+                pageSize: 'A4', // Paper size
+                exportOptions: {
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7] // Specify the columns to include (index-based)
+                }
+            },
+            {
+                extend: 'print',
+                title: 'Student Data',
+                exportOptions: {
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7] // Specify the columns to include (index-based)
+                }
+            }
+        ],
+        paging: true,
+        searching: true,
+        order: [[0, 'asc']], // Default sorting by the first column
+        responsive: true
+    });
+
     $('.select2').select2();
   });
 </script>

@@ -265,6 +265,7 @@ unset($_SESSION['alert']);
     </div>
         <ul class="sidebar-menu" data-widget="tree">
             <li id="dashboard"><a href="ict_maintenance.php"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a></li>
+            <li id="about"><a href="academic_promoted_lists.php"><i class="fa fa-info-circle"></i> <span>Promoted Management</span></a></li>
             <li class="treeview">
     <a href="#">
         <i class="fa fa-folder"></i> <span>Pending List</span>
