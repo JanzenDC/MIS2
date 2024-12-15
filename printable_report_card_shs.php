@@ -99,7 +99,14 @@ if ($result->num_rows > 0) {
         ],
     ];
 }
+$query = "SELECT from_year, to_year FROM school_years ORDER BY created_at DESC LIMIT 1";
+$result = $conn->query($query);
 
+if ($result && $row = $result->fetch_assoc()) {
+    $defaultFromYear = $row['from_year'];
+    $defaultToYear = $row['to_year'];
+    $fullyear = $defaultFromYear . ' - ' . $defaultToYear;
+}
 $conn->close();
 ?>
 <!DOCTYPE html>
@@ -115,7 +122,7 @@ $conn->close();
             margin: 0;
             padding: 20px;
         }
-        .report-card { width: 850px; margin: 0 auto; border: 1px solid #000; padding: 20px; }
+        .report-card { max-width: 952px;margin: 0 auto; border: 1px solid #000; padding: 20px; }
         .header, .footer { text-align: center; }
         h2, h3, h4 { margin: 5px 0; }
         .learner-info { text-align: center; margin-bottom: 20px; }
@@ -281,9 +288,10 @@ $conn->close();
     </div>
 
     <!-- Right Side: Report Card and Certification -->
-    <div class="right">
+    <div class="right" style="position: relative;">
+    <img src="https://hrms-jshs.edu.ph/wp-content/uploads/2021/07/DepEd.png" style="width: 100px; position: absolute; top: 0; left: 0;">
+        <div style="text-align: center; font-size: 12px; font-weight: bold; position: absolute; top: -10px; left: 23px;">JHS 9 - ES</div>
         <div class="header">Republic of the Philippines<br>DEPARTMENT OF EDUCATION</div>
-        <div style="text-align: right; font-size: 12px; font-weight: bold;">SF 9 - ES</div>
         <table class="no-border">
             <tr>
                 <td class="small-text">Region: __________________________</td>
@@ -299,36 +307,34 @@ $conn->close();
             </tr>
         </table>
 <br>
-<div class="header">LEARNER'S PROGRESS REPORT CARD<br>School Year <?= isset($grades[0]['school_year']) ? $grades[0]['school_year'] : '__________' ?></div>
+<div class="header">LEARNER'S PROGRESS REPORT CARD<br>School Year <?= isset($fullyear) ? $fullyear : '__________' ?></div>
 
         
-    <table class="no-border">
-    <tr>
-    <td class="small-text">
-    Name:
-    <?= 
-        (isset($learner['first_name']) ? $learner['first_name'] . ' ' : '') .
-        (isset($learner['middle_name']) && !empty($learner['middle_name']) ? $learner['middle_name'] . ' ' : '') .
-        (isset($learner['last_name']) ? $learner['last_name'] : '____________________') 
-    ?>
-</td>
+<div style='padding: 12px;'>
+    Name: <span style="display: inline-block; border-bottom: 1px solid #000; width: 200px;">
+        <?= 
+            (isset($learner['first_name']) ? $learner['first_name'] . ' ' : '') .
+            (isset($learner['middle_name']) && !empty($learner['middle_name']) ? $learner['middle_name'] . ' ' : '') .
+            (isset($learner['last_name']) ? $learner['last_name'] : '')
+        ?>
+    </span><br>
+    Age: <span style="display: inline-block; border-bottom: 1px solid #000; width: 50px;">
+        <?= isset($learner['age']) ? $learner['age'] : '' ?>
+    </span>
+    Sex: <span style="display: inline-block; border-bottom: 1px solid #000; width: 100px;">
+        <?= isset($learner['gender']) ? $learner['gender'] : '' ?>
+    </span><br>
+    Grade: <span style="display: inline-block; border-bottom: 1px solid #000; width: 50px;">
+        <?= isset($learner['grade_level']) ? $learner['grade_level'] : '' ?>
+    </span>
+    Section: <span style="display: inline-block; border-bottom: 1px solid #000; width: 100px;">
+        <?= isset($grades[0]['section']) ? $grades[0]['section'] : '' ?>
+    </span>
+    LRN: <span style="display: inline-block; border-bottom: 1px solid #000; width: 150px;">
+        <?= isset($lrn) ? $lrn : '' ?>
+    </span>
+</div>
 
-<td class="small-text">DOB:</td>
-<td><?= isset($learner['dob']) ? date("F j, Y", strtotime($learner['dob'])) : '__________' ?></td>
-
-    </tr>
-    <tr>
-    <td class="small-text">Grade Level: <?= isset($learner['grade_level']) ? $learner['grade_level'] : '____________________' ?></td>
-        <td class="small-text">Section:</td>
-        <td><?= isset($grades[0]['section']) ? $grades[0]['section'] : '__________' ?></td>
-
-    </tr>
-    <tr>
-        <td class="small-text">Sex: <?= isset($learner['gender']) ? $learner['gender'] : '____________________' ?></td>
-        <td class="small-text">LRN:</td>
-        <td><?= isset($lrn) ? $lrn : '__________' ?></td>
-    </tr>
-</table>
 
         <br>
         <p class="indent small-text">Dear Parent,</p>
@@ -359,7 +365,7 @@ $conn->close();
     </div>
 </div>
 
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br>
 <div class="report-card">
 
     <!-- Report on Learning Progress -->

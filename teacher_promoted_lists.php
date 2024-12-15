@@ -496,37 +496,46 @@ $conn->close();
 <script>
   $(function () {
     $('#example1').DataTable({
-        dom: 'Bfrtip', // Define the buttons container
-        buttons: [
-            {
-                extend: 'excelHtml5',
-                title: 'Student Data',
-                exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6, 7] // Specify the columns to include (index-based)
-                }
-            },
-            {
-                extend: 'pdfHtml5',
-                title: 'Student Data',
-                orientation: 'landscape', // Optional: landscape or portrait
-                pageSize: 'A4', // Paper size
-                exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6, 7] // Specify the columns to include (index-based)
-                }
-            },
-            {
-                extend: 'print',
-                title: 'Student Data',
-                exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6, 7] // Specify the columns to include (index-based)
-                }
+    dom: 'Bfrtip', // Define the buttons container
+    buttons: [
+        {
+            extend: 'excelHtml5',
+            title: 'Student Data',
+            exportOptions: {
+                columns: [0, 1, 2, 3, 4, 5, 6, 7] // Specify the columns to include (index-based)
             }
-        ],
-        paging: true,
-        searching: true,
-        order: [[0, 'asc']], // Default sorting by the first column
-        responsive: true
-    });
+        },
+        {
+            extend: 'pdfHtml5',
+            title: 'Student Data',
+            orientation: 'landscape', // Optional: landscape or portrait
+            pageSize: 'A4', // Paper size
+            exportOptions: {
+                columns: [0, 1, 2, 3, 4, 5, 6, 7] // Specify the columns to include (index-based)
+            }
+        },
+        {
+            extend: 'print',
+            title: 'Student Data',
+            customize: function (win) {
+                $(win.document.body).prepend(
+                    '<div style="text-align: center; margin-bottom: 20px;">' +
+                    '' +
+                    '</div>'
+                );
+            },
+            // <img src="https://i.pinimg.com/originals/49/7b/68/497b682ad643678c2067057818546470.png" style="max-width: 100px;" />
+            exportOptions: {
+                columns: [0, 1, 2, 3, 4, 5, 6, 7] // Specify the columns to include (index-based)
+            }
+        }
+    ],
+    paging: true,
+    searching: true,
+    order: [[0, 'asc']], // Default sorting by the first column
+    responsive: true
+});
+
 
     $('.select2').select2();
   });

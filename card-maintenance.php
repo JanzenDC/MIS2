@@ -23,6 +23,13 @@ if ($user) {
 }
 
 $stmt->close();
+$query = "SELECT from_year, to_year FROM school_years ORDER BY created_at DESC LIMIT 1";
+$result = $conn->query($query);
+
+if ($result && $row = $result->fetch_assoc()) {
+    $defaultFromYear = $row['from_year'];
+    $defaultToYear = $row['to_year'];
+}
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $behavior_type = $_POST['behavior_type'];
     $first_behavior_statement = $_POST['first_behavior_statement'];
@@ -119,7 +126,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         color: inherit; /* Keep text color same on hover */
     }
 </style>
-<body class="hold-transition skin-green sidebar-mini">
+<body class="hold-transition skin-green sidebar-mini " style="background: #222d32;">
 <div class="wrapper">
 
   <!-- Main Header -->
@@ -161,7 +168,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </nav>
     </header>
 
-    <aside class="main-sidebar">
+    <aside class="main-sidebar" >
     <section class="sidebar">
         <div class="sidebar-logo text-center" style="padding: 15px;">
             <img id="sidebar-logo" 
@@ -436,7 +443,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </section>
 </aside>
 
-    <div class="content-wrapper">
+    <div class="content-wrapper" style='height: 100vh; overflow-y: auto;'>
         <section class="content-header">
             <h1>
                 Card Maintenance
@@ -444,7 +451,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </h1>
         </section>
 
-        <section class="content">
+        <section class="content" >
             <form method='POST' style="max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 5px; background-color: #f9f9f9;">
                 <div style="margin-bottom: 15px;">
                     <label for="behavior_type" style="font-weight: bold; display: block; margin-bottom: 5px;">Behavior Type:</label>
@@ -510,6 +517,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     </tbody>
                 </table>
             </div>
+
+            <form method="POST" action="submit_school_year.php" style="margin-bottom: 200px;width: 300px; margin: 50px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                <h2 style="text-align: center; margin-bottom: 20px; font-family: Arial, sans-serif;">School Year</h2>
+                <div style="margin-bottom: 15px;">
+                    <label for="fromYear" style="display: block; font-size: 14px; font-weight: bold; margin-bottom: 5px;">From Year</label>
+                    <input type="number" id="fromYear" name="from_year" value="<?= htmlspecialchars($defaultFromYear); ?>" required style="width: 100%; padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label for="toYear" style="display: block; font-size: 14px; font-weight: bold; margin-bottom: 5px;">To Year</label>
+                    <input type="number" id="toYear" name="to_year" value="<?= htmlspecialchars($defaultToYear); ?>" required style="width: 100%; padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px;">
+                </div>
+                <button type="submit" style="width: 100%; padding: 10px; font-size: 16px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">Submit</button>
+            </form>
         </section>
     </div>
 

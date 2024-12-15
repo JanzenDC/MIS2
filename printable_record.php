@@ -72,7 +72,13 @@ if ($resultGrades && $resultGrades->num_rows > 0) {
         $section = $row['section'];
     }
 }
+$query = "SELECT from_year, to_year FROM school_years ORDER BY created_at DESC LIMIT 1";
+$result = $conn->query($query);
 
+if ($result && $row = $result->fetch_assoc()) {
+    $defaultFromYear = $row['from_year'];
+    $defaultToYear = $row['to_year'];
+}
 $conn->close();
 ?>
 
