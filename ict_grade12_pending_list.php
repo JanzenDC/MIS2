@@ -217,7 +217,7 @@ $conn->close();
             </a>
         </li>
         <li>
-            <a href="#" class="btn btn-default btn-flat logout" onclick="confirmLogout()">
+            <a href="logout.php" class="btn btn-default btn-flat logout" onclick="confirmLogout()">
                 <i class="fa fa-sign-out"></i> Logout
             </a>
         </li>
@@ -623,7 +623,7 @@ function confirmReject(id) {
 <script>
 function confirmLogout() {
     if (confirm("Are you sure you want to log out?")) {
-        window.location.href = "login_page.php"; // Redirect to the logout page if confirmed
+        window.location.href = "logout.php"; // Redirect to the logout page if confirmed
     }
 }
 

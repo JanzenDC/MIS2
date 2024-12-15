@@ -1,137 +1,89 @@
 <?php
-// Database connection
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "school_db";
+session_start(); 
+require 'db_connection.php'; // Ensure you have your database connection established
 
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login_page.php"); // Redirect to login page if not logged in
+    exit();
 }
 
-// SQL query to count the number of ids in learners table
-$sql = "SELECT COUNT(id) AS total_learners FROM learners";
-$result = $conn->query($sql);
+// Fetch user ID from session
+$userId = $_SESSION['user_id'];
 
-if ($result->num_rows > 0) {
-    $row = $result->fetch_assoc();
-    $total_learners = $row['total_learners'];
-} else {
-    $total_learners = 0;
-}
+// Fetch user role
+$query = "SELECT role FROM users WHERE id = $userId"; // Directly include the variable in the query
+$result = $conn->query($query);
+$userRole = ($result && $result->num_rows > 0) ? $result->fetch_assoc()['role'] : "No Role";
 
-$sql = "SELECT COUNT(id) AS total_users FROM users";
-$result = $conn->query($sql);
+// Count records in various tables
+$total_learners = $conn->query("SELECT COUNT(id) AS total_learners FROM learners")->fetch_assoc()['total_learners'] ?? 0;
+$total_users = $conn->query("SELECT COUNT(id) AS total_users FROM users")->fetch_assoc()['total_users'] ?? 0;
+$total_shs_subjects = $conn->query("SELECT COUNT(id) AS total_shs_subjects FROM shs_subjects")->fetch_assoc()['total_shs_subjects'] ?? 0;
+$total_subjects = $conn->query("SELECT COUNT(id) AS total_subjects FROM subjects")->fetch_assoc()['total_subjects'] ?? 0;
 
-if ($result->num_rows > 0) {
-    $row = $result->fetch_assoc();
-    $total_users = $row['total_users'];
-} else {
-    $total_users = 0;
-}
-
-$sql = "SELECT COUNT(id) AS total_shs_subjects FROM shs_subjects";
-$result = $conn->query($sql);
-
-if ($result->num_rows > 0) {
-    $row = $result->fetch_assoc();
-    $total_shs_subjects = $row['total_shs_subjects'];
-} else {
-    $total_shs_subjects = 0;
-}
-
-$sql = "SELECT COUNT(id) AS total_subjects FROM subjects";
-$result = $conn->query($sql);
-
-if ($result->num_rows > 0) {
-    $row = $result->fetch_assoc();
-    $total_subjects = $row['total_subjects'];
-} else {
-    $total_subjects = 0;
-}
-
-$conn->close();
-?>
-
-<?php
-// Include your database connection file
-include 'db_connection.php'; // Ensure you have your database connection established
-
-session_start(); // Start the session to access session variables
-$userId = $_SESSION['user_id']; // Assuming user ID is stored in session upon login
-
-// Fetch user role only
-$query = "SELECT role FROM users WHERE id = ?";
-$stmt = $conn->prepare($query);
-$stmt->bind_param("i", $userId);
-$stmt->execute();
-$result = $stmt->get_result();
-$user = $result->fetch_assoc();
-
-if ($user) {
-    $userRole = $user['role']; // Fetch the user's role
-} else {
-    $userRole = "No Role"; // Default role if not found
-}
-
-$query = "SELECT id, description FROM events ORDER BY id";
-$result = mysqli_query($conn, $query);
+// Handle event operations
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  if (isset($_POST['deleteEvent'])) {
-      $eventId = (int) $_POST['eventId'];
-      if ($eventId > 0) {
-          $query = "DELETE FROM events WHERE id = $eventId";
-          if (mysqli_query($conn, $query)) {
-              $_SESSION['alert'] = '<div class="alert alert-success">Event successfully deleted!</div>';
-          } else {
-              $_SESSION['alert'] = '<div class="alert alert-danger">Error: ' . mysqli_error($conn) . '</div>';
-          }
-      } else {
-          $_SESSION['alert'] = '<div class="alert alert-warning">Invalid event ID.</div>';
-      }
-      header('Location: ' . $_SERVER['PHP_SELF']);
-      exit;
-  }
+    if (isset($_POST['deleteEvent'])) {
+        $eventId = (int) $_POST['eventId'];
+        if ($eventId > 0) {
+            $query = "DELETE FROM events WHERE id = $eventId";
+            if ($conn->query($query)) {
+                $_SESSION['alert'] = '<div class="alert alert-success">Event successfully deleted!</div>';
+            } else {
+                $_SESSION['alert'] = '<div class="alert alert-danger">Error: ' . $conn->error . '</div>';
+            }
+        } else {
+            $_SESSION['alert'] = '<div class="alert alert-warning">Invalid event ID.</div>';
+        }
+        header('Location: ' . $_SERVER['PHP_SELF']);
+        exit;
+    }
 
-  if (isset($_POST['editEvent'])) {
-      $eventId = (int) $_POST['eventId'];
-      $newDescription = mysqli_real_escape_string($conn, $_POST['eventDescription']);
-      if ($eventId > 0 && !empty($newDescription)) {
-          $query = "UPDATE events SET description = '$newDescription' WHERE id = $eventId";
-          if (mysqli_query($conn, $query)) {
-              $_SESSION['alert'] = '<div class="alert alert-success">Event successfully updated!</div>';
-          } else {
-              $_SESSION['alert'] = '<div class="alert alert-danger">Error: ' . mysqli_error($conn) . '</div>';
-          }
-          header('Location: ' . $_SERVER['PHP_SELF']);
-          exit;
-      } else {
-          $_SESSION['alert'] = '<div class="alert alert-warning">Please provide a valid event description.</div>';
-      }
-  }
+    if (isset($_POST['editEvent'])) {
+        $eventId = (int) $_POST['eventId'];
+        $newDescription = mysqli_real_escape_string($conn, $_POST['eventDescription']);
+        if ($eventId > 0 && !empty($newDescription)) {
+            $query = "UPDATE events SET description = '$newDescription' WHERE id = $eventId";
+            if ($conn->query($query)) {
+                $_SESSION['alert'] = '<div class="alert alert-success">Event successfully updated!</div>';
+            } else {
+                $_SESSION['alert'] = '<div class="alert alert-danger">Error: ' . $conn->error . '</div>';
+            }
+            header('Location: ' . $_SERVER['PHP_SELF']);
+            exit;
+        } else {
+            $_SESSION['alert'] = '<div class="alert alert-warning">Please provide a valid event description.</div>';
+        }
+    }
 
-  if (isset($_POST['eventDescription'])) {
-      if (!empty($_POST['eventDescription'])) {
-          $eventDescription = mysqli_real_escape_string($conn, $_POST['eventDescription']);
-          $query = "INSERT INTO events (description) VALUES ('$eventDescription')";
-
-          if (mysqli_query($conn, $query)) {
-              $_SESSION['alert'] = '<div class="alert alert-success">Event successfully added!</div>';
-              header('Location: ' . $_SERVER['PHP_SELF']);
-              exit;
-          } else {
-              $_SESSION['alert'] = '<div class="alert alert-danger">Error: ' . mysqli_error($conn) . '</div>';
-          }
-      } else {
-          $_SESSION['alert'] = '<div class="alert alert-warning">Please provide an event description.</div>';
-      }
-  }
+    if (isset($_POST['eventDescription'])) {
+        if (!empty($_POST['eventDescription'])) {
+            $eventDescription = mysqli_real_escape_string($conn, $_POST['eventDescription']);
+            $query = "INSERT INTO events (description) VALUES ('$eventDescription')";
+            if ($conn->query($query)) {
+                $_SESSION['alert'] = '<div class="alert alert-success">Event successfully added!</div>';
+                header('Location: ' . $_SERVER['PHP_SELF']);
+                exit;
+            } else {
+                $_SESSION['alert'] = '<div class="alert alert-danger">Error: ' . $conn->error . '</div>';
+            }
+        } else {
+            $_SESSION['alert'] = '<div class="alert alert-warning">Please provide an event description.</div>';
+        }
+    }
 }
 
+// Fetch events for display
+$query = "SELECT id, description FROM events ORDER BY id";
+$events = $conn->query($query);
+
+// Prepare alert message
 $alertMessage = isset($_SESSION['alert']) ? $_SESSION['alert'] : '';
 unset($_SESSION['alert']);
+
+// Close the database connection
+$conn->close();
 ?>
 <!DOCTYPE html>
 <html>
@@ -242,7 +194,7 @@ unset($_SESSION['alert']);
             </a>
         </li>
         <li>
-            <a href="#" class="btn btn-default btn-flat logout" onclick="confirmLogout()">
+            <a href="logout.php" class="btn btn-default btn-flat logout" onclick="confirmLogout()">
                 <i class="fa fa-sign-out"></i> Logout
             </a>
         </li>
@@ -555,11 +507,11 @@ unset($_SESSION['alert']);
                 </div>
 
                 <!-- Event List Section -->
-                <?php if ($result && mysqli_num_rows($result) > 0): ?>
+                <?php if ($events  && mysqli_num_rows($events ) > 0): ?>
                     <div class="row">
                         <div class="col-lg-12">
                             <div class="list-group" style="padding-left: 0;">
-                                <?php while ($row = mysqli_fetch_assoc($result)): ?>
+                                <?php while ($row = mysqli_fetch_assoc($events )): ?>
                                     <div class="list-group-item" style="background-color: #f7f7f7; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); transition: box-shadow 0.3s ease;">
                                         <?php
                                         $eventId = $row['id'];
@@ -687,7 +639,7 @@ unset($_SESSION['alert']);
 <script>
 function confirmLogout() {
     if (confirm("Are you sure you want to log out?")) {
-        window.location.href = "login_page.php"; // Redirect to the logout page if confirmed
+        window.location.href = "logout.php"; // Redirect to the logout page if confirmed
     }
 }
 

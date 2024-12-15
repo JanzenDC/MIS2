@@ -53,6 +53,7 @@ $adviser = ''; // Initialize adviser
 $school_year = ''; // Initialize school year
 $section = ''; // Initialize section
 
+
 if ($lrn) {
     // Fetch the learner's first name, last name, dob, gender, and grade level
     $stmt = $conn->prepare("SELECT first_name, last_name, dob, gender, grade_level FROM learners WHERE lrn = ?");
@@ -66,6 +67,7 @@ if ($lrn) {
         $dob = $row['dob']; // Fetch DOB
         $gender = $row['gender']; // Fetch gender
         $grade_level = $row['grade_level'];
+
     }
 
     $subjects = [];
@@ -626,7 +628,7 @@ $conn->close(); // Close the database connection
 <script>
 function confirmLogout() {
     if (confirm("Are you sure you want to log out?")) {
-        window.location.href = "login_page.php"; // Redirect to the logout page if confirmed
+        window.location.href = "logout.php"; // Redirect to the logout page if confirmed
     }
 }
 </script>

@@ -1,8 +1,33 @@
-<?php
-// Include your database connection file
-include 'db_connection.php'; // Ensure you have your database connection established
 
-session_start(); // Start the session to access session variables
+
+<?php
+session_start(); 
+// Database connection
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "school_db";
+
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+
+if (!isset($_SESSION['user_id'])) {
+    // If the session variable 'user_id' is not set, show an alert
+    echo "<script>alert('No active session found. Please log in.');</script>";
+    header("Location: login_page.php"); // Redirect to login page if not logged in
+    exit();
+}
+
+
+
+
+
+
+
 $userId = $_SESSION['user_id']; // Assuming user ID is stored in session upon login
 
 // Fetch user role only
@@ -18,21 +43,6 @@ if ($user) {
 } else {
     $userRole = "No Role"; // Default role if not found
 }
-?>
-
-<?php
-// Database connection
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "school_db";
-
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
-
 // SQL query to count the number of ids in learners table
 $sql = "SELECT COUNT(id) AS total_learners FROM learners";
 $result = $conn->query($sql);
@@ -213,6 +223,7 @@ unset($_SESSION['alert']);
     }
 </style>
 
+
 <body class="hold-transition skin-green sidebar-mini">
 <div class="wrapper">
 
@@ -241,7 +252,7 @@ unset($_SESSION['alert']);
             </a>
         </li>
         <li>
-            <a href="#" class="btn btn-default btn-flat logout" onclick="confirmLogout()">
+            <a href="logout.php" class="btn btn-default btn-flat logout" onclick="confirmLogout()">
                 <i class="fa fa-sign-out"></i> Logout
             </a>
         </li>
@@ -799,7 +810,7 @@ unset($_SESSION['alert']);
 <script>
 function confirmLogout() {
     if (confirm("Are you sure you want to log out?")) {
-        window.location.href = "login_page.php"; // Redirect to the logout page if confirmed
+        window.location.href = "logout.php"; // Redirect to the logout page if confirmed
     }
 }
 
