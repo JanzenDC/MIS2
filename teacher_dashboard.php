@@ -272,6 +272,7 @@ $conn->close();
                             <i class="fa fa-angle-left pull-right"></i>
                         </span>
                     </a>
+                    <li id="about"><a href="teacher_promoted_lists.php"><i class="fa fa-info-circle"></i> <span>Promoted Management</span></a></li>
                     <ul class="treeview-menu">
                         <li class="treeview">
                             <a href="#">
