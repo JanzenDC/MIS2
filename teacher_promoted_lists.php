@@ -520,10 +520,11 @@ $conn->close();
             customize: function (win) {
                 $(win.document.body).prepend(
                     '<div style="text-align: center; margin-bottom: 20px;">' +
-                    '<img src="https://i.pinimg.com/originals/49/7b/68/497b682ad643678c2067057818546470.png" style="max-width: 100px;" />' +
+                    '' +
                     '</div>'
                 );
             },
+            // <img src="https://i.pinimg.com/originals/49/7b/68/497b682ad643678c2067057818546470.png" style="max-width: 100px;" />
             exportOptions: {
                 columns: [0, 1, 2, 3, 4, 5, 6, 7] // Specify the columns to include (index-based)
             }
