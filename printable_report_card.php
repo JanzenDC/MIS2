@@ -327,20 +327,20 @@ $conn->close();
         <p class="indent small-text">Admitted to Grade ______ Section ______ Room ______</p>
         <p class="indent small-text">Eligible for Admission to Grade ______</p>
         <p class="indent small-text">Approved:</p>
-        <div class="underline"></div>
+        <div class="underline" style='margin-top: 25px;'></div>
         <p class="indent small-text">Head Teacher / Principal</p>
-        <div class="underline"></div>
+        <div class="underline" style='margin-top: 25px;'></div>
         <p class="indent small-text">Teacher</p>
 
         <div class="section-title">Cancellation of Eligibility to Transfer</div>
         <p class="indent small-text">Admitted in ________________________</p>
         <p class="indent small-text">Date:_____________________________</p>
-        <div class="underline"></div>
-        <p class="indent small-text">Principal</p>
+        <div class="underline" style='margin-left: 270px;'></div>
+        <p class="indent small-text" style='margin-left: 320px;'>Principal</p>
     </div>
 </div>
 
-<br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 <div class="report-card">
 
     <!-- Report on Learning Progress -->
