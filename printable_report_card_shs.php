@@ -107,6 +107,67 @@ if ($result && $row = $result->fetch_assoc()) {
     $defaultToYear = $row['to_year'];
     $fullyear = $defaultFromYear . ' - ' . $defaultToYear;
 }
+
+
+function loadStudentGrades($conn, $lrn) {
+    // Query to fetch grades along with subject and semester details
+    $sql = "SELECT 
+                s.subject_name, 
+                s.semester,
+                sg.first_grading, 
+                sg.second_grading, 
+                sg.third_grading, 
+                sg.fourth_grading,
+                sg.final_grade,
+                s.curriculum
+            FROM shs_grades sg
+            JOIN shs_subjects s ON sg.subject_id = s.id
+            WHERE sg.lrn = '$lrn'
+            ORDER BY s.curriculum, s.semester, s.subject_name";
+
+    $result = $conn->query($sql);
+
+    if ($result === false) {
+        die("Error in query: " . $conn->error);
+    }
+
+    // Separate subjects into first and second semester
+    $firstSemesterSubjects = [];
+    $secondSemesterSubjects = [];
+
+    while ($row = $result->fetch_assoc()) {
+        if ($row['semester'] === '1') {
+            $firstSemesterSubjects[] = $row;
+        } elseif ($row['semester'] === '2') {
+            $secondSemesterSubjects[] = $row;
+        }
+    }
+
+    return [
+        'first_semester' => $firstSemesterSubjects,
+        'second_semester' => $secondSemesterSubjects
+    ];
+}
+
+
+$gradesData = loadStudentGrades($conn, $lrn);
+
+// Calculate semester averages
+$firstSemesterAverage = calculateSemesterAverage($gradesData['first_semester']);
+$secondSemesterAverage = calculateSemesterAverage($gradesData['second_semester']);
+
+function calculateSemesterAverage($semesterSubjects) {
+    if (empty($semesterSubjects)) return 0;
+    
+    $totalGrade = 0;
+    $subjectCount = count($semesterSubjects);
+    
+    foreach ($semesterSubjects as $subject) {
+        $totalGrade += ($subject['first_grading'] + $subject['second_grading']) / 2;
+    }
+    
+    return round($totalGrade / $subjectCount, 2);
+}
 $conn->close();
 ?>
 <!DOCTYPE html>
@@ -366,122 +427,191 @@ $conn->close();
 </div>
 
 <br><br><br>
-<div class="report-card">
+<div class="container">
+        <div class='left'>
+            <h2>LEARNER'S PROGRESS REPORT CARD</h2>
+            
+            <!-- First Semester Table -->
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <th colspan="4" style="border: 1px solid #000; padding: 5px; text-align: left; background-color: #f0f0f0;">First Semester</th>
+                </tr>
+                <tr>
+                    <th style="border: 1px solid #000; padding: 5px; text-align: left; background-color: #f0f0f0;">Subjects</th>
+                    <th style="border: 1px solid #000; padding: 5px; text-align: left; background-color: #f0f0f0;">Quarter 1</th>
+                    <th style="border: 1px solid #000; padding: 5px; text-align: left; background-color: #f0f0f0;">Quarter 2</th>
+                    <th style="border: 1px solid #000; padding: 5px; text-align: left; background-color: #f0f0f0;">Semester Final Grade</th>
+                </tr>
+                <?php foreach ($gradesData['first_semester'] as $subject): ?>
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 5px;"><?php echo htmlspecialchars($subject['subject_name']); ?></td>
+                        <td style="border: 1px solid #000; padding: 5px;"><?php echo number_format($subject['first_grading'], 2); ?></td>
+                        <td style="border: 1px solid #000; padding: 5px;"><?php echo number_format($subject['second_grading'], 2); ?></td>
+                        <td style="border: 1px solid #000; padding: 5px;"><?php echo number_format(($subject['first_grading'] + $subject['second_grading']) / 2, 2); ?></td>
+                    </tr>
+                <?php endforeach; ?>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" style="border: 1px solid #000; padding: 5px; text-align: right; background-color: #f9f9f9; font-weight: bold;">General Average</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center; background-color: #f9f9f9; font-weight: bold;"><?php echo $firstSemesterAverage; ?></td>
+                    </tr>
+                </tfoot>
+            </table>
 
-    <!-- Report on Learning Progress -->
-    <div class="section-title">REPORT ON LEARNING PROGRESS AND ACHIEVEMENT</div>
-    <table class="table">
-        <tr>
-            <th rowspan="2">Learning Areas</th>
-            <th colspan="4">Quarter</th>
-            <th rowspan="2">Final Rating</th>
-            <th rowspan="2">Remarks</th>
-        </tr>
-        <tr>
-            <th>1</th>
-            <th>2</th>
-            <th>3</th>
-            <th>4</th>
-        </tr>
-
-        <?php foreach ($grades as $grade): ?>
-            <tr>
-                <td class="subject-row"><?php echo htmlspecialchars($grade['subject_name']); ?></td>
-                <td><?php echo htmlspecialchars($grade['first_grading'] ?? '-'); ?></td>
-                <td><?php echo htmlspecialchars($grade['second_grading'] ?? '-'); ?></td>
-                <td><?php echo htmlspecialchars($grade['third_grading'] ?? '-'); ?></td>
-                <td><?php echo htmlspecialchars($grade['fourth_grading'] ?? '-'); ?></td>
-                <td><?php echo htmlspecialchars($grade['final_grade'] ?? '-'); ?></td>
-                <td><?php echo ($grade['final_grade'] >= 75) ? 'Passed' : 'Failed'; ?></td>
-            </tr>
-        <?php endforeach; ?>
-        <tr>
-            <td colspan="5"><strong>General Average</strong></td>
-            <td colspan="2">
-                <?php
-                $total_grades = 0;
-                $subject_count = 0;
-                foreach ($grades as $grade) {
-                    if ($grade['final_grade']) {
-                        $total_grades += $grade['final_grade'];
-                        $subject_count++;
-                    }
-                }
-                echo $subject_count ? round($total_grades / $subject_count, 2) : '-';
-                ?>
-            </td>
-        </tr>
-    </table>
-
-    <!-- Report on Learner's Observed Values -->
-    <div class="section-title">REPORT ON LEARNER'S OBSERVE VALUES</div>
-    <table class="table">
-        <tr>
-            <th>Core Values</th>
-            <th>Behavior Statements</th>
-            <th>1st</th>
-            <th>2nd</th>
-            <th>3rd</th>
-            <th>4th</th>
-        </tr>
-        <?php foreach ($coreValues as $coreValue): ?>
-            <tr>
-                <td rowspan="2"><?php echo htmlspecialchars($coreValue['coreName']); ?></td>
-                <td><?php echo htmlspecialchars($coreValue['behaviour_one']); ?></td>
-                <td>AO</td><td>SO</td><td>RO</td><td>NO</td>
-            </tr>
-            <tr>
-                <td><?php echo htmlspecialchars($coreValue['behavior_two']); ?></td>
-                <td>AO</td><td>SO</td><td>RO</td><td>NO</td>
-            </tr>
-        <?php endforeach; ?>
-    </table>
-
-
-    <div class="footer-section">
-    <table class="descriptor-table" style="width: 60%;  font-size: 0.9em; ">
-        <tr>
-            <th>Descriptors</th>
-            <th>Grading Scale</th>
-            <th>Remarks</th>
-        </tr>
-        <tr>
-            <td>Outstanding</td>
-            <td>90-100</td>
-            <td>Passed</td>
-        </tr>
-        <tr>
-            <td>Very Satisfactory</td>
-            <td>85-89</td>
-            <td>Passed</td>
-        </tr>
-        <tr>
-            <td>Satisfactory</td>
-            <td>80-84</td>
-            <td>Passed</td>
-        </tr>
-        <tr>
-            <td>Fairly Satisfactory</td>
-            <td>75-79</td>
-            <td>Passed</td>
-        </tr>
-        <tr>
-            <td>Did Not Meet Expectations</td>
-            <td>Below 75</td>
-            <td>Failed</td>
-        </tr>
-    </table>
-
-        <div class="grading-scale"style="width: 45%;  font-size: 0.9em; margin-left: 100px;">
-            <table class="descriptor-table">
-                <tr><th>Marking</th><th>Non-Numerical Rating</th></tr>
-                <tr><td>AO</td><td>Always Observed</td></tr>
-                <tr><td>SO</td><td>Sometimes Observed</td></tr>
-                <tr><td>RO</td><td>Rarely Observed</td></tr>
-                <tr><td>NO</td><td>Not Observed</td></tr>
+            <!-- Second Semester Table -->
+            <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                <tr>
+                    <th colspan="4" style="border: 1px solid #000; padding: 5px; text-align: left; background-color: #f0f0f0;">Second Semester</th>
+                </tr>
+                <tr>
+                    <th style="border: 1px solid #000; padding: 5px; text-align: left; background-color: #f0f0f0;">Subjects</th>
+                    <th style="border: 1px solid #000; padding: 5px; text-align: left; background-color: #f0f0f0;">Quarter 3</th>
+                    <th style="border: 1px solid #000; padding: 5px; text-align: left; background-color: #f0f0f0;">Quarter 4</th>
+                    <th style="border: 1px solid #000; padding: 5px; text-align: left; background-color: #f0f0f0;">Semester Final Grade</th>
+                </tr>
+                <?php foreach ($gradesData['second_semester'] as $subject): ?>
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 5px;"><?php echo htmlspecialchars($subject['subject_name']); ?></td>
+                        <td style="border: 1px solid #000; padding: 5px;"><?php echo number_format($subject['third_grading'], 2); ?></td>
+                        <td style="border: 1px solid #000; padding: 5px;"><?php echo number_format($subject['fourth_grading'], 2); ?></td>
+                        <td style="border: 1px solid #000; padding: 5px;"><?php echo number_format(($subject['third_grading'] + $subject['fourth_grading']) / 2, 2); ?></td>
+                    </tr>
+                <?php endforeach; ?>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" style="border: 1px solid #000; padding: 5px; text-align: right; background-color: #f9f9f9; font-weight: bold;">General Average</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center; background-color: #f9f9f9; font-weight: bold;"><?php echo $secondSemesterAverage; ?></td>
+                    </tr>
+                </tfoot>
             </table>
         </div>
-    </div>
+        <div class='right'>
+        <h2>REPORT ON LEARNER'S OBSERVED VALUES</h2>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 10px;">
+                    <tr>
+                        <th style="border: 1px solid #000; padding: 5px; text-align: center; background-color: #f0f0f0;">Core Values</th>
+                        <th style="border: 1px solid #000; padding: 5px; text-align: center; background-color: #f0f0f0;">Behavior Statements</th>
+                        <th style="border: 1px solid #000; padding: 5px; text-align: center; background-color: #f0f0f0;">Quarter 1</th>
+                        <th style="border: 1px solid #000; padding: 5px; text-align: center; background-color: #f0f0f0;">Quarter 2</th>
+                        <th style="border: 1px solid #000; padding: 5px; text-align: center; background-color: #f0f0f0;">Quarter 3</th>
+                        <th style="border: 1px solid #000; padding: 5px; text-align: center; background-color: #f0f0f0;">Quarter 4</th>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: left;">1. Maka-Diyos</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: left;">Expresses one's spiritual beliefs while respecting the spiritual beliefs of others</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;">SO</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;"></td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;"></td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;"></td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: left;"></td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: left;">Shows adherence to ethical principles by upholding truth in all understandings</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;">SO</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;"></td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;"></td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;"></td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: left;">2. Makatao</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: left;">Is sensitive to individual, social, and cultural differences; resists stereotyping people</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;">SO</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;"></td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;"></td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;"></td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: left;"></td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: left;">Demonstrates contributions towards solidarity</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;">SO</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;"></td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;"></td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;"></td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: left;">3. Makakalikasan</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: left;">Cares for the environment and utilizes resources wisely, judiciously, and economically</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;">SO</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;"></td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;"></td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;"></td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: left;">4. Makabansa</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: left;">Demonstrates pride in being a Filipino; exercises the rights and responsibilities of a Filipino citizen</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;">SO</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;"></td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;"></td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;"></td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: left;"></td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: left;">Demonstrates appropriate behavior in carrying out activities in the school, community, and country</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;">SO</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;"></td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;"></td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;"></td>
+                    </tr>
+                </table>
+                Observed Values
+
+                <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                    <tr>
+                        <th style="border: 1px solid #000; padding: 5px; text-align: center;">Marking</th>
+                        <th style="border: 1px solid #000; padding: 5px; text-align: center;">Non-numerical Rating</th>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;">AO</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;">Always Observed</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;">SO</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;">Sometimes Observed</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;">RO</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;">Rarely Observed</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;">NO</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;">Not Observed</td>
+                    </tr>
+                </table>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                    <tr>
+                        <th style="border: 1px solid #000; padding: 5px; text-align: center;">Descriptors</th>
+                        <th style="border: 1px solid #000; padding: 5px; text-align: center;">Grading Scale</th>
+                        <th style="border: 1px solid #000; padding: 5px; text-align: center;">Remarks</th>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;">Outstanding</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;">90-100</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;">Passed</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;">Very Satisfactory</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;">85-89</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;">Passed</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;">Satisfactory</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;">80-84</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;">Passed</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;">Fairly Satisfactory</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;">75-79</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;">Passed</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;">Did Not Meet Expectations</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;">Below 75</td>
+                        <td style="border: 1px solid #000; padding: 5px; text-align: center;">Failed</td>
+                    </tr>
+                </table>
+
+        </div>
+
 </div>
 </body>
 </html>

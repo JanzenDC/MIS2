@@ -63,6 +63,48 @@ if ($resultGrades->num_rows > 0) {
         $section = $row['section'];
     }
 }
+// TODO:
+function loadStudentGrades($conn, $lrn) {
+    // SQL Query to get subjects and grades based on the student’s LRN
+    $sql = "SELECT 
+                s.subject_name, 
+                s.semester,
+                sg.first_grading, 
+                sg.second_grading, 
+                sg.third_grading, 
+                sg.fourth_grading,
+                sg.final_grade,
+                s.curriculum
+            FROM shs_grades sg
+            JOIN shs_subjects s ON sg.subject_id = s.id
+            WHERE sg.lrn = '$lrn'
+            ORDER BY s.curriculum, s.semester, s.subject_name";
+    
+    $result = $conn->query($sql);
+
+    if ($result === false) {
+        die("Error in query: " . $conn->error);
+    }
+
+    // Separate subjects into first and second semester
+    $firstSemesterSubjects = [];
+    $secondSemesterSubjects = [];
+
+    while ($row = $result->fetch_assoc()) {
+        if ($row['semester'] === '1') {
+            $firstSemesterSubjects[] = $row;
+        } elseif ($row['semester'] === '2') {
+            $secondSemesterSubjects[] = $row;
+        }
+    }
+
+    return [
+        'first_semester' => $firstSemesterSubjects,
+        'second_semester' => $secondSemesterSubjects
+    ];
+}
+$subjects = loadStudentGrades($conn, $lrn);
+
 
 $conn->close();
 ?>
@@ -247,38 +289,144 @@ $conn->close();
     <!-- Scholastic Record for Grades 7 to 10 -->
     <div class="section">
         <h3>SCHOLASTIC RECORD</h3>
-        <?php for ($grade = 7; $grade <= 10; $grade++): ?>
-        <div class="grade-record">
-            <p>Classified as Grade: <?= htmlspecialchars($grade) ?> Section: <?= htmlspecialchars($section) ?> School Year: <?= htmlspecialchars($school_year) ?> Name of Adviser/Teacher: <?= htmlspecialchars($adviser) ?></p>
-            <table class="table">
-                <tr>
-                    <th>LEARNING AREAS</th>
-                    <th>1st Quarter</th>
-                    <th>2nd Quarter</th>
-                    <th>3rd Quarter</th>
-                    <th>4th Quarter</th>
-                    <th>Final Rating</th>
-                    <th>Remarks</th>
-                </tr>
-                <?php foreach ($grades as $gradeData): ?>
-                <tr>
-                    <td><?= htmlspecialchars($gradeData['subject_name']); ?></td>
-                    <td><?= htmlspecialchars($gradeData['first_grading']); ?></td>
-                    <td><?= htmlspecialchars($gradeData['second_grading']); ?></td>
-                    <td><?= htmlspecialchars($gradeData['third_grading']); ?></td>
-                    <td><?= htmlspecialchars($gradeData['fourth_grading']); ?></td>
-                    <td><?= htmlspecialchars($gradeData['final_grade']); ?></td>
-                    <td><?= htmlspecialchars($gradeData['status']); ?></td>
-                </tr>
-                <?php endforeach; ?>
-                <tr>
-                    <td colspan="5" style="text-align: right;">General Average</td>
-                    <td><?= htmlspecialchars($grades[0]['general_average'] ?? ''); ?></td>
-                    <td></td>
-                </tr>
+        
+        <div style="width: 100%;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <!-- <div style="display: flex; flex-wrap: wrap; justify-content: space-between;">
+                    <div style="flex: 1 1 16%; text-align: center; margin-bottom: 5px;">SCHOOL: <?php echo $school_name; ?></div>
+                    <div style="flex: 1 1 16%; text-align: center; margin-bottom: 5px;">SCHOOL ID: <?php echo $school_id; ?></div>
+                    <div style="flex: 1 1 16%; text-align: center; margin-bottom: 5px;">GRADE LEVEL: <?php echo $grade_level; ?></div>
+                    <div style="flex: 1 1 16%; text-align: center; margin-bottom: 5px;">SY: <?php echo $school_year; ?></div>
+                    <div style="flex: 1 1 16%; text-align: center; margin-bottom: 5px;">SECTION: <?php echo $section; ?></div>
+                    <div style="flex: 1 1 16%; text-align: center; margin-bottom: 5px;">SEM: <?php echo $semester; ?></div>
+                </div> -->
+            </div>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                <thead>
+                    <tr>
+                        <th style="border: 1px solid black; padding: 5px; text-align: center; background-color: #d3d3d3;">Indicate if Subject is CORE, APPLIED, or SPECIALIZED</th>
+                        <th style="border: 1px solid black; padding: 5px; text-align: center; background-color: #d3d3d3;">SUBJECTS</th>
+                        <th colspan="2" style="border: 1px solid black; padding: 5px; text-align: center; background-color: #d3d3d3;">Quarter</th>
+                        <th style="border: 1px solid black; padding: 5px; text-align: center; background-color: #d3d3d3;">SEM FINAL GRADE</th>
+                        <th style="border: 1px solid black; padding: 5px; text-align: center; background-color: #d3d3d3;">ACTION TAKEN</th>
+                    </tr>
+                    <tr>
+                        <th style="border: 1px solid black; padding: 5px; text-align: center;"></th>
+                        <th style="border: 1px solid black; padding: 5px; text-align: center;"></th>
+                        <th style="border: 1px solid black; padding: 5px; text-align: center;">1ST</th>
+                        <th style="border: 1px solid black; padding: 5px; text-align: center;">2ND</th>
+                        <th style="border: 1px solid black; padding: 5px; text-align: center;"></th>
+                        <th style="border: 1px solid black; padding: 5px; text-align: center;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                    foreach ($subjects['first_semester'] as $subject) {
+                        echo "<tr>";
+                        echo "<td style='border: 1px solid black; padding: 5px; text-align: center;'>".$subject['curriculum']."</td>";
+                        echo "<td style='border: 1px solid black; padding: 5px; text-align: center;'>".$subject['subject_name']."</td>";
+                        echo "<td style='border: 1px solid black; padding: 5px; text-align: center;'>".$subject['first_grading']."</td>";
+                        echo "<td style='border: 1px solid black; padding: 5px; text-align: center;'>".$subject['second_grading']."</td>";
+                        echo "<td style='border: 1px solid black; padding: 5px; text-align: center;'>".$subject['final_grade']."</td>";
+                        echo "<td style='border: 1px solid black; padding: 5px; text-align: center;'></td>";
+                        echo "</tr>";
+                    }
+                    ?>
+                    <tr>
+                        <td colspan="4" style="border: 1px solid black; padding: 5px; text-align: center;">General Ave. for the Semester</td>
+                        <td style="border: 1px solid black; padding: 5px; text-align: center;"></td>
+                        <td style="border: 1px solid black; padding: 5px; text-align: center;"></td>
+                    </tr>
+                </tbody>
             </table>
-        </div> 
-        <?php endfor; ?>
+            <div style="margin-top: 20px;">
+                <div>REMARKS:</div>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+                <div style="text-align: center;">
+                    <span style="display: block; margin-top: 40px; border-top: 1px solid black;">JULIUS T. ARAW</span>
+                    Signature of Adviser over Printed Name
+                </div>
+                <div style="text-align: center;">
+                    <span style="display: block; margin-top: 40px; border-top: 1px solid black;">AMELITA B. CELEMIN, PH.D. / PRINCIPAL</span>
+                    Signature of Authorized Person over Printed Name, Designation
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <div>Certified True and Correct:</div>
+                <div>Date Checked (MM/DD/YYYY):</div>
+            </div>
+        </div>
+
+        <div style="width: 100%;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <!-- <div style="display: flex; flex-wrap: wrap; justify-content: space-between;">
+                    <div style="flex: 1 1 16%; text-align: center; margin-bottom: 5px;">SCHOOL: <?php echo $school_name; ?></div>
+                    <div style="flex: 1 1 16%; text-align: center; margin-bottom: 5px;">SCHOOL ID: <?php echo $school_id; ?></div>
+                    <div style="flex: 1 1 16%; text-align: center; margin-bottom: 5px;">GRADE LEVEL: <?php echo $grade_level; ?></div>
+                    <div style="flex: 1 1 16%; text-align: center; margin-bottom: 5px;">SY: <?php echo $school_year; ?></div>
+                    <div style="flex: 1 1 16%; text-align: center; margin-bottom: 5px;">SECTION: <?php echo $section; ?></div>
+                    <div style="flex: 1 1 16%; text-align: center; margin-bottom: 5px;">SEM: <?php echo $semester; ?></div>
+                </div> -->
+            </div>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                <thead>
+                    <tr>
+                        <th style="border: 1px solid black; padding: 5px; text-align: center; background-color: #d3d3d3;">Indicate if Subject is CORE, APPLIED, or SPECIALIZED</th>
+                        <th style="border: 1px solid black; padding: 5px; text-align: center; background-color: #d3d3d3;">SUBJECTS</th>
+                        <th colspan="2" style="border: 1px solid black; padding: 5px; text-align: center; background-color: #d3d3d3;">Quarter</th>
+                        <th style="border: 1px solid black; padding: 5px; text-align: center; background-color: #d3d3d3;">SEM FINAL GRADE</th>
+                        <th style="border: 1px solid black; padding: 5px; text-align: center; background-color: #d3d3d3;">ACTION TAKEN</th>
+                    </tr>
+                    <tr>
+                        <th style="border: 1px solid black; padding: 5px; text-align: center;"></th>
+                        <th style="border: 1px solid black; padding: 5px; text-align: center;"></th>
+                        <th style="border: 1px solid black; padding: 5px; text-align: center;">3RD</th>
+                        <th style="border: 1px solid black; padding: 5px; text-align: center;">4TH</th>
+                        <th style="border: 1px solid black; padding: 5px; text-align: center;"></th>
+                        <th style="border: 1px solid black; padding: 5px; text-align: center;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                    foreach ($subjects['first_semester'] as $subject) {
+                        echo "<tr>";
+                        echo "<td style='border: 1px solid black; padding: 5px; text-align: center;'>".$subject['curriculum']."</td>";
+                        echo "<td style='border: 1px solid black; padding: 5px; text-align: center;'>".$subject['subject_name']."</td>";
+                        echo "<td style='border: 1px solid black; padding: 5px; text-align: center;'>".$subject['third_grading']."</td>";
+                        echo "<td style='border: 1px solid black; padding: 5px; text-align: center;'>".$subject['fourth_grading']."</td>";
+                        echo "<td style='border: 1px solid black; padding: 5px; text-align: center;'>".$subject['final_grade']."</td>";
+                        echo "<td style='border: 1px solid black; padding: 5px; text-align: center;'></td>";
+                        echo "</tr>";
+                    }
+                    ?>
+                    <tr>
+                        <td colspan="4" style="border: 1px solid black; padding: 5px; text-align: center;">General Ave. for the Semester</td>
+                        <td style="border: 1px solid black; padding: 5px; text-align: center;"></td>
+                        <td style="border: 1px solid black; padding: 5px; text-align: center;"></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div style="margin-top: 20px;">
+                <div>REMARKS:</div>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+                <div style="text-align: center;">
+                    <span style="display: block; margin-top: 40px; border-top: 1px solid black;">JULIUS T. ARAW</span>
+                    Signature of Adviser over Printed Name
+                </div>
+                <div style="text-align: center;">
+                    <span style="display: block; margin-top: 40px; border-top: 1px solid black;">AMELITA B. CELEMIN, PH.D. / PRINCIPAL</span>
+                    Signature of Authorized Person over Printed Name, Designation
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <div>Certified True and Correct:</div>
+                <div>Date Checked (MM/DD/YYYY):</div>
+            </div>
+        </div>
+
+
     </div>
 
     <!-- Certification Section -->
