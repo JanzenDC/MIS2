@@ -16,10 +16,16 @@ $user = $result->fetch_assoc();
 if ($user) {
     $assigned_to = $user['assigned_to']; // fetch Grade7 - Grade12
     $userRole = $user['role']; // Fetch the user's role
+
+    // Extract the numeric value from assigned_to
+    preg_match('/\d+/', $assigned_to, $matches);
+    $extractedGradeNumber = $matches[0] ?? null; // Extracted number or null if no match
 } else {
     $assigned_to = "";
     $userRole = "No Role"; // Default role if not found
+    $extractedGradeNumber = null; // Default if no user found
 }
+
 $grades = [
     'Grade7' => 'teacher_record_grade7.php',
     'Grade8' => 'teacher_record_grade8.php',
@@ -28,7 +34,11 @@ $grades = [
     'Grade11' => 'teacher_record_grade11.php',
     'Grade12' => 'teacher_record_grade12.php',
 ];
+
+
 ?>
+
+
 
 <?php
 // Database connection (replace with your own connection parameters)
