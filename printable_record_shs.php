@@ -258,33 +258,73 @@ $conn->close();
 
     <!-- Learner's Information -->
     <div class="section">
-        <h3>LEARNER'S INFORMATION</h3>
-        <div class="info-row">
-            <div class="column">
-                <p>Last Name: <?= htmlspecialchars($learner['last_name']); ?></p>
-                <p>First Name: <?= htmlspecialchars($learner['first_name']); ?></p>
-                <p>Middle Name: <?= htmlspecialchars($learner['middle_name']); ?></p>
-                <p>Name Extn: (Jr, II, III): <?= htmlspecialchars($learner['name_extension'] ?? ''); ?></p>
-                <p>Learner Reference Number (LRN): <?= htmlspecialchars($learner['lrn']); ?></p>
+        <h3 style="font-family: Arial, sans-serif; margin-bottom: 10px;">LEARNER'S INFORMATION</h3>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <!-- Row 1 -->
+            <div style="display: flex; justify-content: space-between; gap: 20px;">
+                <div style="flex: 1;">
+                    <p style="margin: 5px 0;">Last Name: <?= htmlspecialchars($learner['last_name']); ?></p>
+                </div>
+                <div style="flex: 1;">
+                    <p style="margin: 5px 0;">First Name: <?= htmlspecialchars($learner['first_name']); ?></p>
+                </div>
+                <div style="flex: 1;">
+                    <p style="margin: 5px 0;">Middle Name: <?= htmlspecialchars($learner['middle_name']); ?></p>
+                </div>
+                <div style="flex: 1;">
+                    <p style="margin: 5px 0;">Name Extn: (Jr, II, III): <?= htmlspecialchars($learner['name_extension'] ?? ''); ?></p>
+                </div>
             </div>
-            <div class="column">
-                <p>Birthdate (mm/dd/yyyy): <?= htmlspecialchars($learner['dob']); ?></p>
-                <p>Sex: <?= htmlspecialchars($learner['gender']); ?></p>
-                <p>Guardian Name: <?= htmlspecialchars($learner['guardian_name']); ?></p>
+            <!-- Row 2 -->
+            <div style="display: flex; justify-content: space-between; gap: 20px;">
+                <div style="flex: 1;">
+                    <p style="margin: 5px 0;">Learner Reference Number (LRN): <?= htmlspecialchars($learner['lrn']); ?></p>
+                </div>
+                <div style="flex: 1;">
+                    <p style="margin: 5px 0;">Birthdate (mm/dd/yyyy): <?= htmlspecialchars($learner['dob']); ?></p>
+                </div>
+                <div style="flex: 1;">
+                    <p style="margin: 5px 0;">Sex: <?= htmlspecialchars($learner['gender']); ?></p>
+                </div>
+                <div style="flex: 1;">
+                    <p style="margin: 5px 0;">Date of SHS Admission (MM/DD/YY):</p>
+                </div>
             </div>
         </div>
     </div>
 
+
+    
     <!-- Eligibility for JHS Enrollment -->
-    <div class="section">
+    <div class="section" style="display: flex; flex-direction: column; gap: 10px;">
         <h3>ELIGIBILITY FOR JHS ENROLLMENT</h3>
-        <p>Elementary School Completer General Average: _____</p>
-        <p>
-            Name of Elementary School: <?= !empty($learner['other_school']) ? htmlspecialchars($learner['other_school']) : htmlspecialchars($learner['school_attended']); ?>
-            School ID: _____ 
-            Address of School: ___________
-        </p>
+        <div style="display: flex; justify-content: space-between; gap: 20px;">
+            <div style="flex: 1;">
+                <p>High School Completer</p>
+            </div>
+            <div style="flex: 1;">
+                <p>General Average: _____</p>
+            </div>
+            <div style="flex: 1;">
+                <p>Junior High School Completer:</p>
+            </div>
+            <div style="flex: 1;">
+                <p>General Average: _____</p>
+            </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; gap: 20px;">
+            <div style="flex: 1;">
+                <p>Date of Graduation/Completion (MM/DD/YY): _____</p>
+            </div>
+            <div style="flex: 1;">
+                <p>Name of Elementary School: <?= !empty($learner['other_school']) ? htmlspecialchars($learner['other_school']) : htmlspecialchars($learner['school_attended']); ?></p>
+            </div>
+            <div style="flex: 1;">
+                <p>Address of School: ___________</p>
+            </div>
+        </div>
     </div>
+
 
     <!-- Scholastic Record for Grades 7 to 10 -->
     <div class="section">
