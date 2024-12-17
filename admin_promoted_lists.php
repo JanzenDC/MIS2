@@ -649,40 +649,44 @@ $conn->close();
 <script>
   $(function () {
     $('#example1').DataTable({
-        dom: 'Bfrtip', // Define the buttons container
-        buttons: [
-            {
-                extend: 'excelHtml5',
-                title: 'Student Data',
-                exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6, 7] // Specify the columns to include (index-based)
-                }
-            },
-            {
-                extend: 'pdfHtml5',
-                title: 'Student Data',
-                orientation: 'landscape', // Optional: landscape or portrait
-                pageSize: 'A4', // Paper size
-                exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6, 7] // Specify the columns to include (index-based)
-                }
-            },
-            {
-                extend: 'print',
-                title: 'Student Data',
-                exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6, 7] // Specify the columns to include (index-based)
-                }
+    dom: 'Bfrtip', // Define the buttons container
+    buttons: [
+        {
+            extend: 'excelHtml5',
+            title: 'Student Data',
+            exportOptions: {
+                columns: [0, 1, 2, 3, 4, 5, 6, 7] // Specify the columns to include (index-based)
             }
-        ],
-        paging: true,
-        searching: true,
-        order: [[0, 'asc']], // Default sorting by the first column
-        responsive: true
-    });
-
-    $('.select2').select2();
-  });
+        },
+        {
+            extend: 'pdfHtml5',
+            title: 'Student Data',
+            orientation: 'landscape', // Optional: landscape or portrait
+            pageSize: 'A4', // Paper size
+            exportOptions: {
+                columns: [0, 1, 2, 3, 4, 5, 6, 7] // Specify the columns to include (index-based)
+            }
+        },
+        {
+            extend: 'print',
+            title: 'Student Data',
+            customize: function (win) {
+                $(win.document.body).prepend(
+                    '<div style="text-align: center; margin-bottom: 20px;">' +
+                    '<img src="https://i.ibb.co/BPJVny9/New-Project.png" style="width: 350px;"/>' +
+                    '</div>'
+                );
+            },
+            exportOptions: {
+                columns: [0, 1, 2, 3, 4, 5, 6, 7] // Specify the columns to include (index-based)
+            }
+        }
+    ],
+    paging: true,
+    searching: true,
+    order: [[0, 'asc']], // Default sorting by the first column
+    responsive: true
+});
 </script>
 
 <script>
