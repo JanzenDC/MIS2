@@ -31,13 +31,30 @@ $stmt->execute();
 $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 
+$query = "SELECT assigned_to, role FROM users WHERE id = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("i", $userId);
+$stmt->execute();
+$result = $stmt->get_result();
+$user = $result->fetch_assoc();
+
+
 if ($user) {
+    $assigned_to = $user['assigned_to']; // fetch Grade7 - Grade12
     $userRole = $user['role']; // Fetch the user's role
 } else {
+    $assigned_to = "";
     $userRole = "No Role"; // Default role if not found
 }
-$stmt->close(); // Close the statement
-
+$grades = [
+    'Grade7' => 'teacher_record_grade7.php',
+    'Grade8' => 'teacher_record_grade8.php',
+    'Grade9' => 'teacher_record_grade9.php',
+    'Grade10' => 'teacher_record_grade10.php',
+    'Grade11' => 'teacher_record_grade11.php',
+    'Grade12' => 'teacher_record_grade12.php',
+];
+$stmt->close();
 // Fetch subjects from the database (use `shs_subjects` table)
 
 // Fetch academic records and learner's name
@@ -53,7 +70,6 @@ $adviser = ''; // Initialize adviser
 $school_year = ''; // Initialize school year
 $section = ''; // Initialize section
 
-
 if ($lrn) {
     // Fetch the learner's first name, last name, dob, gender, and grade level
     $stmt = $conn->prepare("SELECT first_name, last_name, dob, gender, grade_level FROM learners WHERE lrn = ?");
@@ -67,7 +83,6 @@ if ($lrn) {
         $dob = $row['dob']; // Fetch DOB
         $gender = $row['gender']; // Fetch gender
         $grade_level = $row['grade_level'];
-
     }
 
     $subjects = [];
@@ -76,7 +91,7 @@ if ($lrn) {
     $grade_level = mysqli_real_escape_string($conn, $grade_level);
     
     // Raw SQL query
-    $sql = "SELECT id, subject_name FROM shs_subjects WHERE grade_level = '$grade_level'";
+    $sql = "SELECT id, subject_name FROM shs_subjects WHERE grade_level = '$grade_level' AND semester = '1'";
     $result = $conn->query($sql);
     
     if ($result && $result->num_rows > 0) {
@@ -101,15 +116,34 @@ if ($lrn) {
         $section = $row['section'];
     }
     $stmt->close(); // Close the statement for fetching grades
+
+    $sql_second = "SELECT * FROM shs_subjects WHERE grade_level = '$grade_level' AND semester = '2'";
+    $result_second = $conn->query($sql_second);
+
+    if ($result_second && $result_second->num_rows > 0) {
+        while ($subjectRow_second = $result_second->fetch_assoc()) {
+            $subjectList_second[$subjectRow_second['id']] = $subjectRow_second['subject_name']; // Store subject id and name
+        }
+    }
+
+    // Fetch academic records (grades) for the learner from the `shs_grades` table
+    $lrn_second = $conn->real_escape_string($lrn); // Sanitize the input to prevent SQL injection
+    $sqlGrades_second = "SELECT subject_id, first_grading, second_grading, third_grading, fourth_grading, final_grade, status, general_average, adviser, school_year, section FROM shs_grades WHERE lrn = '$lrn_second'";
+    $gradesResult_second = $conn->query($sqlGrades_second);
+
+    if ($gradesResult_second) {
+        while ($gradeRow_second = $gradesResult_second->fetch_assoc()) {
+            $gradesData_second[$gradeRow_second['subject_id']] = $gradeRow_second; // Store each subject's grading data using subject_id
+            $generalAverage_second = $gradeRow_second['general_average']; // Fetch the general average
+            
+        }
+    }
 }
 
-if (!isset($assigned_to)) {
-    $assigned_to = ''; // Default value
-}
 $conn->close(); // Close the database connection
-
-
 ?>
+
+
 
 <!DOCTYPE html>
 <html>
@@ -153,7 +187,7 @@ $conn->close(); // Close the database connection
   transition: all 0.9s ease; /* Smooth transition */
 }
 .content-wrapper::before {
-
+  content: '';
   position: absolute;
   top: 0;
   left: 0;
@@ -196,7 +230,7 @@ $conn->close(); // Close the database connection
         color: inherit; /* Keep text color same on hover */
     }
 
-    /* Main container styling */
+        /* Main container styling */
 .content {
     font-family: Arial, sans-serif;
    
@@ -355,6 +389,7 @@ $conn->close(); // Close the database connection
             </span>
         </a>
 
+        
                     <ul class="treeview-menu">
                         <li class="treeview">
                             <a href="#">
@@ -485,38 +520,38 @@ $conn->close(); // Close the database connection
         </div>
     </div>
 </section>
-
-
-
+    
     <section class="content">
     <div class="box box-primary">
         <div class="box-header with-border">
             <center><h3 class="box-title">REPORT ON LEARNING PROGRESS AND ACHIEVEMENT</h3></center>
         </div>
+        
+
         <div class="table table-bordered grade-table">
-        <form action="process_grade_teacher_shs.php" method="post">
-    <input type="hidden" name="lrn" value="<?php echo htmlspecialchars($lrn); ?>">
-    <input type='hidden' name="grade" value="<?php echo htmlspecialchars($grade_level); ?>">
-
-   <!-- Adviser, School Year, and Section Row -->
-<div style="display: flex; margin-bottom: 10px; margin-left: 35px;">
-    <div style="margin-right: 10px;">
-        <strong>ADVISER:</strong>
-        <input type="text" name="adviser" value="<?php echo isset($adviser) ? htmlspecialchars($adviser) : ''; ?>" 
-               style="width: 200px; border: none; border-bottom: 1px solid #000; outline: none;" required>
-    </div>
-    <div style="margin-right: 10px;">
-        <strong>SCHOOL YEAR:</strong>
-        <input type="text" name="school_year" value="<?php echo isset($school_year) ? htmlspecialchars($school_year) : ''; ?>" 
-               style="width: 200px; border: none; border-bottom: 1px solid #000; outline: none;" required>
-    </div>
-    <div>
-        <strong>SECTION:</strong>
-        <input type="text" name="section" value="<?php echo isset($section) ? htmlspecialchars($section) : ''; ?>" 
-               style="width: 200px; border: none; border-bottom: 1px solid #000; outline: none;" required>
-    </div>
-</div>
-
+            <form action="process_grades_teacher_shs.php" method="post">
+                <input type="hidden" name="lrn" value="<?php echo htmlspecialchars($lrn); ?>">
+                <input type='hidden' name="grade" value="<?php echo htmlspecialchars($grade_level); ?>">
+  
+                <!-- Adviser, School Year, and Section Row -->
+                <div style="display: flex; margin-bottom: 10px; margin-left: 35px;">
+                    <div style="margin-right: 10px;">
+                        <strong>ADVISER:</strong>
+                        <input type="text" name="adviser" value="<?php echo isset($adviser) ? htmlspecialchars($adviser) : ''; ?>" 
+                            style="width: 200px; border: none; border-bottom: 1px solid #000; outline: none;" required>
+                    </div>
+                    <div style="margin-right: 10px;">
+                        <strong>SCHOOL YEAR:</strong>
+                        <input type="text" name="school_year" value="<?php echo isset($school_year) ? htmlspecialchars($school_year) : ''; ?>" 
+                            style="width: 200px; border: none; border-bottom: 1px solid #000; outline: none;" required>
+                    </div>
+                    <div>
+                        <strong>SECTION:</strong>
+                        <input type="text" name="section" value="<?php echo isset($section) ? htmlspecialchars($section) : ''; ?>" 
+                            style="width: 200px; border: none; border-bottom: 1px solid #000; outline: none;" required>
+                    </div>
+                </div>
+                <strong>First Semester:</strong>
                 <table class="table table-bordered">
                     <thead>
                         <tr>
@@ -533,38 +568,38 @@ $conn->close(); // Close the database connection
                         </tr>
                     </thead>
                     <tbody>
-        <?php foreach ($subjects as $subjectId => $subjectName): 
-            $subjectGrades = isset($grades[$subjectId]) ? $grades[$subjectId] : [
-                'first_grading' => null, 
-                'second_grading' => null, 
-                'third_grading' => null, 
-                'fourth_grading' => null, 
-                'final_grade' => null, 
-                'status' => null
-            ];
-        ?>
+                        <?php foreach ($subjects as $subjectId => $subjectName): 
+                            $subjectGrades = isset($grades[$subjectId]) ? $grades[$subjectId] : [
+                                'first_grading' => null, 
+                                'second_grading' => null, 
+                                'third_grading' => null, 
+                                'fourth_grading' => null, 
+                                'final_grade' => null, 
+                                'status' => null
+                            ];
+                        ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($subjectName); ?></td>
                                 <td>
-    <input type="number" name="grades[<?php echo htmlspecialchars($subjectId); ?>][first]" class="grade-input" min="0" max="100" 
-    value="<?php echo isset($subjectGrades['first_grading']) ? $subjectGrades['first_grading'] : ''; ?>" 
-    oninput="computeFinalGrade(this)">
-</td>
-<td>
-    <input type="number" name="grades[<?php echo htmlspecialchars($subjectId); ?>][second]" class="grade-input" min="0" max="100"
-    value="<?php echo isset($subjectGrades['second_grading']) ? $subjectGrades['second_grading'] : ''; ?>" 
-    oninput="computeFinalGrade(this)">
-</td>
-<td>
-    <input type="number" name="grades[<?php echo htmlspecialchars($subjectId); ?>][third]" class="grade-input" min="0" max="100"
-    value="<?php echo isset($subjectGrades['third_grading']) ? $subjectGrades['third_grading'] : ''; ?>" 
-    oninput="computeFinalGrade(this)">
-</td>
-<td>
-    <input type="number" name="grades[<?php echo htmlspecialchars($subjectId); ?>][fourth]" class="grade-input" min="0" max="100"
-    value="<?php echo isset($subjectGrades['fourth_grading']) ? $subjectGrades['fourth_grading'] : ''; ?>" 
-    oninput="computeFinalGrade(this)">
-</td>
+                                    <input type="number" name="grades[<?php echo htmlspecialchars($subjectId); ?>][first]" class="grade-input" min="0" max="100" 
+                                    value="<?php echo isset($subjectGrades['first_grading']) ? $subjectGrades['first_grading'] : ''; ?>" 
+                                    oninput="computeFinalGrade(this)">
+                                </td>
+                                <td>
+                                    <input type="number" name="grades[<?php echo htmlspecialchars($subjectId); ?>][second]" class="grade-input" min="0" max="100"
+                                    value="<?php echo isset($subjectGrades['second_grading']) ? $subjectGrades['second_grading'] : ''; ?>" 
+                                    oninput="computeFinalGrade(this)">
+                                </td>
+                                <td>
+                                    <input type="number" name="grades[<?php echo htmlspecialchars($subjectId); ?>][third]" class="grade-input" min="0" max="100"
+                                    value="<?php echo isset($subjectGrades['third_grading']) ? $subjectGrades['third_grading'] : ''; ?>" 
+                                    oninput="computeFinalGrade(this)">
+                                </td>
+                                <td>
+                                    <input type="number" name="grades[<?php echo htmlspecialchars($subjectId); ?>][fourth]" class="grade-input" min="0" max="100"
+                                    value="<?php echo isset($subjectGrades['fourth_grading']) ? $subjectGrades['fourth_grading'] : ''; ?>" 
+                                    oninput="computeFinalGrade(this)">
+                                </td>
 
                                 <td>
                                     <?php echo isset($subjectGrades['final_grade']) ? $subjectGrades['final_grade'] : ''; ?>
@@ -573,18 +608,88 @@ $conn->close(); // Close the database connection
                                     <?php echo isset($subjectGrades['status']) ? htmlspecialchars($subjectGrades['status']) : ''; ?>
                                 </td>
                             </tr>
-
-        <?php endforeach; ?>
-    </tbody>
+                        <?php endforeach; ?>
+                    </tbody>
                     <tfoot>
-    <tr>
-        <td colspan="4"></td>
-        <td class="text-right"><strong>General Average:</strong></td>
-        <td><?php echo isset($generalAverage) ? htmlspecialchars($generalAverage) : ''; ?></td>
-    </tr>
-</tfoot>
+                    <tr>
+                        <td colspan="4"></td>
+                        <td class="text-right"><strong>General Average:</strong></td>
+                        <td><?php echo isset($generalAverage) ? htmlspecialchars($generalAverage) : ''; ?></td>
+                    </tr>
+                </tfoot>
 
                 </table>
+
+                <strong>Second Semester:</strong>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th rowspan="2">Learning Areas</th>
+                            <th colspan="4">Quarter</th>
+                            <th rowspan="2">Final Rating</th>
+                            <th rowspan="2">Remarks</th>
+                        </tr>
+                        <tr>
+                            <th>1</th>
+                            <th>2</th>
+                            <th>3</th>
+                            <th>4</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($subjectList_second as $subjectId => $subjectName): 
+                            $subjectGrades = isset($grades[$subjectId]) ? $grades[$subjectId] : [
+                                'first_grading' => null, 
+                                'second_grading' => null, 
+                                'third_grading' => null, 
+                                'fourth_grading' => null, 
+                                'final_grade' => null, 
+                                'status' => null
+                            ];
+                        ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($subjectName); ?></td>
+                                <td>
+                                    <input type="number" name="grades[<?php echo htmlspecialchars($subjectId); ?>][first]" class="grade-input" min="0" max="100" 
+                                    value="<?php echo isset($subjectGrades['first_grading']) ? $subjectGrades['first_grading'] : ''; ?>" 
+                                    oninput="computeFinalGrade(this)">
+                                </td>
+                                <td>
+                                    <input type="number" name="grades[<?php echo htmlspecialchars($subjectId); ?>][second]" class="grade-input" min="0" max="100"
+                                    value="<?php echo isset($subjectGrades['second_grading']) ? $subjectGrades['second_grading'] : ''; ?>" 
+                                    oninput="computeFinalGrade(this)">
+                                </td>
+                                <td>
+                                    <input type="number" name="grades[<?php echo htmlspecialchars($subjectId); ?>][third]" class="grade-input" min="0" max="100"
+                                    value="<?php echo isset($subjectGrades['third_grading']) ? $subjectGrades['third_grading'] : ''; ?>" 
+                                    oninput="computeFinalGrade(this)">
+                                </td>
+                                <td>
+                                    <input type="number" name="grades[<?php echo htmlspecialchars($subjectId); ?>][fourth]" class="grade-input" min="0" max="100"
+                                    value="<?php echo isset($subjectGrades['fourth_grading']) ? $subjectGrades['fourth_grading'] : ''; ?>" 
+                                    oninput="computeFinalGrade(this)">
+                                </td>
+
+                                <td>
+                                    <?php echo isset($subjectGrades['final_grade']) ? $subjectGrades['final_grade'] : ''; ?>
+                                </td>
+                                <td>
+                                    <?php echo isset($subjectGrades['status']) ? htmlspecialchars($subjectGrades['status']) : ''; ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                    <tfoot>
+                    <tr>
+                        <td colspan="4"></td>
+                        <td class="text-right"><strong>General Average:</strong></td>
+                        <td><?php echo isset($generalAverage) ? htmlspecialchars($generalAverage) : ''; ?></td>
+                    </tr>
+                </tfoot>
+
+                </table>
+
+
                 <table class="table table-bordered">
                     <tr>
                         <th>Description</th>
@@ -608,23 +713,43 @@ $conn->close(); // Close the database connection
                     </tr>
                 </table>
                 <button type="submit" class="btn btn-primary">Save Grades</button>
+
             </form>
+            <div style='display: flex; gap: 20px;'>
+                <form action="admin_approve_process_shs.php" method="post">
+                    <input type="hidden" name="lrn" value="<?php echo htmlspecialchars($lrn); ?>">
+                    <button type="submit" class="btn btn-success">Promote</button>
+                </form>
+                <form action="admin_disapprove_process_shs.php" method="post">
+                    <input type="hidden" name="lrn" value="<?php echo htmlspecialchars($lrn); ?>">
+                    <button type="submit" class="btn btn-danger">Reject</button>
+                </form>
+            </div>
         </div>
     </div>
     </div>
 </section>
-
-  
-    <script src="bower_components/datatables.net/js/jquery.dataTables.min.js"></script>
+    
+    
+    <script src="bower_components/datatables.net/js/jquery.dataTables.min.js">
+    </script>
     <script src="bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
     <footer class="main-footer">
     <div class="pull-right hidden-xs">
-      <b>Version</b> 1.0
+    <b>Version</b> 1.0
     </div>
     <strong>No Copyright Infringement &copy;.</strong> All rights reserved.
   </footer>
 </div>
 
+<script>
+function showAlertAndRedirect(message, redirectUrl, delay = 2000) {
+    alert(message); // Show the alert with the message
+    setTimeout(function() {
+        window.location.href = redirectUrl; // Redirect after the specified delay
+    }, delay);
+}
+</script>
 <script>
 function confirmLogout() {
     if (confirm("Are you sure you want to log out?")) {
@@ -632,5 +757,69 @@ function confirmLogout() {
     }
 }
 </script>
+<script>
+    function computeFinalGrade(inputElement) {
+        // Find the row that contains the input element
+        const row = inputElement.closest('tr');
+        const gradeInputs = row.querySelectorAll('.grade-input');
+        const finalGradeCell = row.cells[5]; // Assuming the Final Rating is the 6th column
+        const remarksCell = row.cells[6];   // Assuming the Remarks is the 7th column
+
+        let sum = 0;
+        let count = 0;
+        let allFilled = true;
+
+        // Loop through each grade input field
+        gradeInputs.forEach(input => {
+            const value = parseFloat(input.value);
+            if (!value && value !== 0) {
+                allFilled = false; // Mark as not filled if any field is empty
+            } else {
+                sum += value;
+                count++;
+            }
+        });
+
+        // Compute final grade only if all inputs are filled
+        if (allFilled && count === gradeInputs.length) {
+            const finalGrade = (sum / count).toFixed(2);
+            finalGradeCell.textContent = finalGrade;
+
+            // Add remarks based on final grade
+            remarksCell.textContent = finalGrade >= 75 ? 'Passed' : 'Failed';
+        } else {
+            finalGradeCell.textContent = ''; // Clear the final grade if data is incomplete
+            remarksCell.textContent = '';   // Clear the remarks if data is incomplete
+        }
+
+        // Update general average
+        computeGeneralAverage();
+    }
+
+    function computeGeneralAverage() {
+        const tables = document.querySelectorAll('table'); // All tables (1st and 2nd semester)
+        let totalGrades = 0;
+        let totalSubjects = 0;
+
+        tables.forEach(table => {
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const finalGradeCell = row.cells[5]; // Assuming the Final Rating is the 6th column
+                const finalGrade = parseFloat(finalGradeCell.textContent);
+
+                if (!isNaN(finalGrade)) {
+                    totalGrades += finalGrade;
+                    totalSubjects++;
+                }
+            });
+        });
+
+        const generalAverage = totalSubjects > 0 ? (totalGrades / totalSubjects).toFixed(2) : '';
+        document.querySelectorAll('tfoot td:nth-child(6)').forEach(cell => {
+            cell.textContent = generalAverage;
+        });
+    }
+</script>
+
 </body>
 </html>
