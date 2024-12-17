@@ -531,7 +531,7 @@ $conn->close();
                     <div style="flex: 1 1 16%; text-align: center; margin-bottom: 5px;">GRADE LEVEL: 12</div>
                     <div style="flex: 1 1 16%; text-align: center; margin-bottom: 5px;">SY: _________________</div>
                     <div style="flex: 1 1 16%; text-align: center; margin-bottom: 5px;">SECTION:_________________</div>
-                    <div style="flex: 1 1 16%; text-align: center; margin-bottom: 5px;">SEM: 2nd</div>
+                    <div style="flex: 1 1 16%; text-align: center; margin-bottom: 5px;">SEM: 1st</div>
                 </div>
             </div>
             <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
