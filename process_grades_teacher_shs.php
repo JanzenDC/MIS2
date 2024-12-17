@@ -33,13 +33,13 @@ $grade = isset($_POST['grade']) ? sanitizeInput($_POST['grade']) : '';
 // Validate input
 if (empty($lrn)) {
     $_SESSION['error'] = "LRN is required.";
-    header("Location: view_academic_record_shs.php");
+    header("Location: view_teacher_record.php");
     exit;
 }
 
 if (empty($grades)) {
     $_SESSION['error'] = "No grades submitted.";
-    header("Location: view_academic_record_shs.php?lrn=" . urlencode($lrn));
+    header("Location: view_teacher_record.php?lrn=" . urlencode($lrn));
     exit;
 }
 
@@ -105,6 +105,6 @@ if ($subjectCount > 0) {
 $conn->close();
 
 // Redirect back to the academic record view
-header("Location: view_academic_record_shs.php?lrn=" . urlencode($lrn));
+header("Location: view_teacher_record.php?lrn=" . urlencode($lrn));
 exit;
 ?>
