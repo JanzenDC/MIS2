@@ -250,7 +250,7 @@ $conn->close();
         <div class="title">
             <p>Republic of the Philippines</p>
             <p>Department of Education</p>
-            <p>Learner's Permanent Academic Record for Junior High School (SF10-JHS)</p>
+            <p>Learner's Permanent Academic Record for Senior High School (SF10-JHS)</p>
             <p>(Formerly Form 137)</p>
         </div>
         <img src="dist/img/deped_logo.png" alt="DepEd Logo">
@@ -259,31 +259,75 @@ $conn->close();
     <!-- Learner's Information -->
     <div class="section">
         <h3>LEARNER'S INFORMATION</h3>
-        <div class="info-row">
-            <div class="column">
+        <!-- First Row -->
+        <div style="display: flex; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 150px; padding: 5px;">
                 <p>Last Name: <?= htmlspecialchars($learner['last_name']); ?></p>
-                <p>First Name: <?= htmlspecialchars($learner['first_name']); ?></p>
-                <p>Middle Name: <?= htmlspecialchars($learner['middle_name']); ?></p>
-                <p>Name Extn: (Jr, II, III): <?= htmlspecialchars($learner['name_extension'] ?? ''); ?></p>
-                <p>Learner Reference Number (LRN): <?= htmlspecialchars($learner['lrn']); ?></p>
             </div>
-            <div class="column">
+            <div style="flex: 1; min-width: 150px; padding: 5px;">
+                <p>First Name: <?= htmlspecialchars($learner['first_name']); ?></p>
+            </div>
+            <div style="flex: 1; min-width: 150px; padding: 5px;">
+                <p>Middle Name: <?= htmlspecialchars($learner['middle_name']); ?></p>
+            </div>
+            <div style="flex: 1; min-width: 150px; padding: 5px;">
+                <p>Name Extn (Jr, II, III): <?= htmlspecialchars($learner['name_extension'] ?? ''); ?></p>
+            </div>
+        </div>
+
+        <!-- Second Row -->
+        <div style="display: flex; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 150px; padding: 5px;">
+                <p>Date of Graduation/Completion (MM/DD/YY): </p>
+            </div>
+            <div style="flex: 1; min-width: 150px; padding: 5px;">
                 <p>Birthdate (mm/dd/yyyy): <?= htmlspecialchars($learner['dob']); ?></p>
+            </div>
+            <div style="flex: 1; min-width: 150px; padding: 5px;">
                 <p>Sex: <?= htmlspecialchars($learner['gender']); ?></p>
-                <p>Guardian Name: <?= htmlspecialchars($learner['guardian_name']); ?></p>
             </div>
         </div>
     </div>
 
+
     <!-- Eligibility for JHS Enrollment -->
     <div class="section">
         <h3>ELIGIBILITY FOR JHS ENROLLMENT</h3>
-        <p>Elementary School Completer General Average: _____</p>
-        <p>
-            Name of Elementary School: <?= !empty($learner['other_school']) ? htmlspecialchars($learner['other_school']) : htmlspecialchars($learner['school_attended']); ?>
-            School ID: _____ 
-            Address of School: ___________
-        </p>
+        <div style="display: flex; align-items: center; gap: 150px;">
+            <div style="display: flex; flex-direction: row; margin-right: 20px; gap: 50px;">
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <input type="checkbox">
+                    <p>High School Completer</p>
+                </div>
+                <div>
+                    <p>General Average:</p>
+                </div>
+            </div>
+            <div style="display: flex; flex-direction: row; gap: 50px;">
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <input type="checkbox">
+                    <p>Junior High School Completer</p>
+                </div>
+                <div>
+                    <p>General Average:</p>
+                </div>
+            </div>
+        </div>
+        <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 200px;">
+            <div style="margin-right: 20px;">
+                <p style="margin: 0;">Date of Graduation/Completion (MM/DD/YY):</p>
+            </div>
+            <div style="margin-right: 20px;">
+                <p style="margin: 0;">
+                    Name of Elementary School: 
+                    <?= !empty($learner['other_school']) ? htmlspecialchars($learner['other_school']) : htmlspecialchars($learner['school_attended']); ?>
+                </p>
+            </div>
+            <div>
+                <p style="margin: 0;">School Address:</p>
+            </div>
+        </div>
+
     </div>
 
     <!-- Scholastic Record for Grades 7 to 10 -->
@@ -339,24 +383,36 @@ $conn->close();
                     </tr>
                 </tbody>
             </table>
-            <div style="margin-top: 20px;">
-                <div>REMARKS:</div>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-top: 20px;">
-                <div style="text-align: center;">
-                    <span style="display: block; margin-top: 40px; border-top: 1px solid black;">JULIUS T. ARAW</span>
-                    Signature of Adviser over Printed Name
+                <div style="margin-top: 20px;">
+                    <div>REMARKS:</div>
+
                 </div>
-                <div style="text-align: center;">
-                    <span style="display: block; margin-top: 40px; border-top: 1px solid black;">AMELITA B. CELEMIN, PH.D. / PRINCIPAL</span>
-                    Signature of Authorized Person over Printed Name, Designation
+                <div style="display: flex; margin-top: 20px; gap: 330px;">
+                    <div style="text-align: center;">
+                        <div>Prepared By:</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div>Certified True and Correct:</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div>Date Checked (MM/DD/YYYY):</div>
+                    </div>
                 </div>
+                <div style="display: flex; margin-top: 20px; gap: 200px; margin-bottom: 40px;">
+                    <div style="text-align: center;">
+                        <span style="display: block; margin-top: 40px; ">JULIUS T. ARAW</span>
+                        <span style="border-top: 1px solid black">Signature of Adviser over Printed Name</span>
+                    </div>
+                    <div style="text-align: center;">
+                        <span style="display: block; margin-top: 40px;">AMELITA B. CELEMIN, PH.D. / PRINCIPAL</span>
+                        <span style="border-top: 1px solid black">Signature of Authorized Person over Printed Name, Designation</span>
+                        
+                    </div>
+                    <div style="text-align: center;">
+                        <span style="display: block; margin-top: 40px;">___________________________</span>
+                        
+                    </div>
             </div>
-            <div style="text-align: center; margin-top: 20px;">
-                <div>Certified True and Correct:</div>
-                <div>Date Checked (MM/DD/YYYY):</div>
-            </div>
-        </div>
 
         <div style="width: 100%;">
             <div style="text-align: center; margin-bottom: 20px;">
@@ -408,22 +464,34 @@ $conn->close();
                 </tbody>
             </table>
             <div style="margin-top: 20px;">
-                <div>REMARKS:</div>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-top: 20px;">
-                <div style="text-align: center;">
-                    <span style="display: block; margin-top: 40px; border-top: 1px solid black;">JULIUS T. ARAW</span>
-                    Signature of Adviser over Printed Name
+                    <div>REMARKS:</div>
+
                 </div>
-                <div style="text-align: center;">
-                    <span style="display: block; margin-top: 40px; border-top: 1px solid black;">AMELITA B. CELEMIN, PH.D. / PRINCIPAL</span>
-                    Signature of Authorized Person over Printed Name, Designation
+                <div style="display: flex; margin-top: 20px; gap: 330px;">
+                    <div style="text-align: center;">
+                        <div>Prepared By:</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div>Certified True and Correct:</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div>Date Checked (MM/DD/YYYY):</div>
+                    </div>
                 </div>
-            </div>
-            <div style="text-align: center; margin-top: 20px;">
-                <div>Certified True and Correct:</div>
-                <div>Date Checked (MM/DD/YYYY):</div>
-            </div>
+                <div style="display: flex; margin-top: 20px; gap: 200px; margin-bottom: 40px;">
+                    <div style="text-align: center;">
+                        <span style="display: block; margin-top: 40px; ">JULIUS T. ARAW</span>
+                        <span style="border-top: 1px solid black">Signature of Adviser over Printed Name</span>
+                    </div>
+                    <div style="text-align: center;">
+                        <span style="display: block; margin-top: 40px;">AMELITA B. CELEMIN, PH.D. / PRINCIPAL</span>
+                        <span style="border-top: 1px solid black">Signature of Authorized Person over Printed Name, Designation</span>
+                        
+                    </div>
+                    <div style="text-align: center;">
+                        <span style="display: block; margin-top: 40px;">___________________________</span>
+                        
+                    </div>
         </div>
 
         <div style="width: 100%;">
@@ -476,22 +544,34 @@ $conn->close();
                 </tbody>
             </table>
             <div style="margin-top: 20px;">
-                <div>REMARKS:</div>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-top: 20px;">
-                <div style="text-align: center;">
-                    <span style="display: block; margin-top: 40px; border-top: 1px solid black;">JULIUS T. ARAW</span>
-                    Signature of Adviser over Printed Name
+                    <div>REMARKS:</div>
+
                 </div>
-                <div style="text-align: center;">
-                    <span style="display: block; margin-top: 40px; border-top: 1px solid black;">AMELITA B. CELEMIN, PH.D. / PRINCIPAL</span>
-                    Signature of Authorized Person over Printed Name, Designation
+                <div style="display: flex; margin-top: 20px; gap: 330px;">
+                    <div style="text-align: center;">
+                        <div>Prepared By:</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div>Certified True and Correct:</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div>Date Checked (MM/DD/YYYY):</div>
+                    </div>
                 </div>
-            </div>
-            <div style="text-align: center; margin-top: 20px;">
-                <div>Certified True and Correct:</div>
-                <div>Date Checked (MM/DD/YYYY):</div>
-            </div>
+                <div style="display: flex; margin-top: 20px; gap: 200px; margin-bottom: 40px;">
+                    <div style="text-align: center;">
+                        <span style="display: block; margin-top: 40px; ">JULIUS T. ARAW</span>
+                        <span style="border-top: 1px solid black">Signature of Adviser over Printed Name</span>
+                    </div>
+                    <div style="text-align: center;">
+                        <span style="display: block; margin-top: 40px;">AMELITA B. CELEMIN, PH.D. / PRINCIPAL</span>
+                        <span style="border-top: 1px solid black">Signature of Authorized Person over Printed Name, Designation</span>
+                        
+                    </div>
+                    <div style="text-align: center;">
+                        <span style="display: block; margin-top: 40px;">___________________________</span>
+                        
+                    </div>
         </div>
 
         <div style="width: 100%;">
@@ -544,22 +624,34 @@ $conn->close();
                 </tbody>
             </table>
             <div style="margin-top: 20px;">
-                <div>REMARKS:</div>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-top: 20px;">
-                <div style="text-align: center;">
-                    <span style="display: block; margin-top: 40px; border-top: 1px solid black;">JULIUS T. ARAW</span>
-                    Signature of Adviser over Printed Name
+                    <div>REMARKS:</div>
+
                 </div>
-                <div style="text-align: center;">
-                    <span style="display: block; margin-top: 40px; border-top: 1px solid black;">AMELITA B. CELEMIN, PH.D. / PRINCIPAL</span>
-                    Signature of Authorized Person over Printed Name, Designation
+                <div style="display: flex; margin-top: 20px; gap: 330px;">
+                    <div style="text-align: center;">
+                        <div>Prepared By:</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div>Certified True and Correct:</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div>Date Checked (MM/DD/YYYY):</div>
+                    </div>
                 </div>
-            </div>
-            <div style="text-align: center; margin-top: 20px;">
-                <div>Certified True and Correct:</div>
-                <div>Date Checked (MM/DD/YYYY):</div>
-            </div>
+                <div style="display: flex; margin-top: 20px; gap: 200px; margin-bottom: 40px;">
+                    <div style="text-align: center;">
+                        <span style="display: block; margin-top: 40px; ">JULIUS T. ARAW</span>
+                        <span style="border-top: 1px solid black">Signature of Adviser over Printed Name</span>
+                    </div>
+                    <div style="text-align: center;">
+                        <span style="display: block; margin-top: 40px;">AMELITA B. CELEMIN, PH.D. / PRINCIPAL</span>
+                        <span style="border-top: 1px solid black">Signature of Authorized Person over Printed Name, Designation</span>
+                        
+                    </div>
+                    <div style="text-align: center;">
+                        <span style="display: block; margin-top: 40px;">___________________________</span>
+                        
+                    </div>
         </div>
     </div>
 
