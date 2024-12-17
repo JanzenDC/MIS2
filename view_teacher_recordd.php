@@ -622,13 +622,14 @@ $conn->close(); // Close the database connection
             <div style='display: flex; gap: 20px;'>
                 <form action="teacher_approve_process.php" method="post">
                     <input type="hidden" name="lrn" value="<?php echo htmlspecialchars($lrn); ?>">
-                    <button type="submit" class="btn btn-success">Promote</button>
+                    <button type="submit" class="btn btn-success" onclick="return confirm('Are you sure you want to promote this student?');">Promote</button>
                 </form>
                 <form action="teacher_disapprove_process.php" method="post">
                     <input type="hidden" name="lrn" value="<?php echo htmlspecialchars($lrn); ?>">
-                    <button type="submit" class="btn btn-danger">Reject</button>
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to reject this student?');">Reject</button>
                 </form>
             </div>
+
         </div>
     </div>
     </div>
