@@ -442,28 +442,31 @@ $(document).ready(function () {
         buttons: [
             {
                 extend: 'excelHtml5',
-                title: 'Student Data'
+                title: 'Student Data',
+                className: 'btn-green' // Add custom class
             },
             {
                 extend: 'pdfHtml5',
                 title: 'Student Data',
                 orientation: 'landscape', // Optional: landscape or portrait
-                pageSize: 'A4' // Paper size
+                pageSize: 'A4',
+                className: 'btn-green' // Add custom class
             },
-        {
-            extend: 'print',
-            title: 'Student Data',
-            customize: function (win) {
-                $(win.document.body).prepend(
-                    '<div style="text-align: center; margin-bottom: 20px;">' +
-                    '<img src="https://i.ibb.co/BPJVny9/New-Project.png" style="width: 350px;"/>' +
-                    '</div>'
-                );
-            },
-            exportOptions: {
-                columns: [0, 1, 2, 3, 4, 5, 6, 7] // Specify the columns to include (index-based)
+            {
+                extend: 'print',
+                title: 'Student Data',
+                customize: function (win) {
+                    $(win.document.body).prepend(
+                        '<div style="text-align: center; margin-bottom: 20px;">' +
+                        '<img src="https://i.ibb.co/BPJVny9/New-Project.png" style="width: 350px;"/>' +
+                        '</div>'
+                    );
+                },
+                exportOptions: {
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7] // Specify the columns to include (index-based)
+                },
+                className: 'btn-green' // Add custom class
             }
-        }
         ],
         paging: true,
         searching: true,
@@ -472,6 +475,24 @@ $(document).ready(function () {
     });
 });
 </script>
+
+<style>
+/* Custom CSS for green buttons */
+.btn-green {
+    background-color: #28a745 !important; /* Green background */
+    color: white !important; /* White text */
+    border: none !important; /* Remove border */
+    padding: 10px 20px; /* Padding for buttons */
+    border-radius: 5px; /* Rounded corners */
+    font-size: 14px; /* Font size */
+}
+
+.btn-green:hover {
+    background-color: #218838 !important; /* Darker green on hover */
+    color: white !important; /* White text on hover */
+}
+</style>
+
 
 <script>
   $(function () {
