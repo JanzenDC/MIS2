@@ -295,7 +295,6 @@ $conn->close();
                             <i class="fa fa-angle-left pull-right"></i>
                         </span>
                     </a>
-                    <li id="about"><a href="teacher_promoted_lists.php"><i class="fa fa-info-circle"></i> <span>Promoted Management</span></a></li>
                     <ul class="treeview-menu">
                         <?php if ($assigned_to === 'Grade7'): ?>
                             <li id="form-137-grade7">
@@ -341,7 +340,7 @@ $conn->close();
         <h2 style="text-align: center; color: #2c3e50; font-size: 24px; margin-bottom: 25px; font-weight: bold;">Students Assigned to You</h2>
         
         <div class="card" style="margin-bottom: 25px; background-color: #ecf0f1; border: none; border-radius: 8px; padding: 20px; text-align: center; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
-            <h3 style="color: #34495e; font-size: 20px; font-weight: 500;">Total Students: <?= count($students) ?> <?php echo $assigned_to; ?></h3>
+            <h3 style="color: #34495e; font-size: 20px; font-weight: 500;">Total Students: <?= count($students) ?> </h3>
         </div>
 
         <?php if (!empty($students)): ?>
@@ -443,16 +442,18 @@ $(document).ready(function () {
         buttons: [
             {
                 extend: 'excelHtml5',
-                title: 'Student Data'
+                title: 'Student Data',
+                className: 'btn-green' // Add custom class
             },
             {
                 extend: 'pdfHtml5',
                 title: 'Student Data',
                 orientation: 'landscape', // Optional: landscape or portrait
-                pageSize: 'A4' // Paper size
+                pageSize: 'A4',
+                className: 'btn-green' // Add custom class
             },
             {
-            extend: 'print',
+                extend: 'print',
                 title: 'Student Data',
                 customize: function (win) {
                     $(win.document.body).prepend(
@@ -463,7 +464,8 @@ $(document).ready(function () {
                 },
                 exportOptions: {
                     columns: [0, 1, 2, 3, 4, 5, 6, 7] // Specify the columns to include (index-based)
-                }
+                },
+                className: 'btn-green' // Add custom class
             }
         ],
         paging: true,
@@ -473,6 +475,24 @@ $(document).ready(function () {
     });
 });
 </script>
+
+<style>
+/* Custom CSS for green buttons */
+.btn-green {
+    background-color: #28a745 !important; /* Green background */
+    color: white !important; /* White text */
+    border: none !important; /* Remove border */
+    padding: 10px 20px; /* Padding for buttons */
+    border-radius: 5px; /* Rounded corners */
+    font-size: 14px; /* Font size */
+}
+
+.btn-green:hover {
+    background-color: #218838 !important; /* Darker green on hover */
+    color: white !important; /* White text on hover */
+}
+</style>
+
 
 <script>
   $(function () {
