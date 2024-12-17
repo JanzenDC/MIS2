@@ -452,8 +452,18 @@ $(document).ready(function () {
                 pageSize: 'A4' // Paper size
             },
             {
-                extend: 'print',
-                title: 'Student Data'
+            extend: 'print',
+                title: 'Student Data',
+                customize: function (win) {
+                    $(win.document.body).prepend(
+                        '<div style="text-align: center; margin-bottom: 20px;">' +
+                        '<img src="https://i.ibb.co/BPJVny9/New-Project.png" style="width: 350px;"/>' +
+                        '</div>'
+                    );
+                },
+                exportOptions: {
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7] // Specify the columns to include (index-based)
+                }
             }
         ],
         paging: true,
