@@ -341,39 +341,80 @@ $conn->close();
                 </div>
 
 
-                <table class="table">
-                    <tr>
-                        <th>LEARNING AREAS</th>
-                        <th>1st Quarter</th>
-                        <th>2nd Quarter</th>
-                        <th>3rd Quarter</th>
-                        <th>4th Quarter</th>
-                        <th>Final Rating</th>
-                        <th>Remarks</th>
-                    </tr>
-                    <?php foreach ($filteredGrades as $gradeData): ?>
-                        <tr>
-                            <td><?= htmlspecialchars($gradeData['subject_name']); ?></td>
-                            <td><?= htmlspecialchars($gradeData['first_grading']); ?></td>
-                            <td><?= htmlspecialchars($gradeData['second_grading']); ?></td>
-                            <td><?= htmlspecialchars($gradeData['third_grading']); ?></td>
-                            <td><?= htmlspecialchars($gradeData['fourth_grading']); ?></td>
-                            <td><?= htmlspecialchars($gradeData['final_grade']); ?></td>
-                            <td><?= htmlspecialchars($gradeData['status']); ?></td>
-                        </tr>
-                    <?php endforeach; ?>
-                    <?php if (!empty($filteredGrades)): ?>
-                        <tr>
-                            <td colspan="5" style="text-align: right;">General Average</td>
-                            <td><?= htmlspecialchars($gradeDetails['general_average'] ?? ''); ?></td>
-                            <td></td>
-                        </tr>
-                    <?php else: ?>
-                        <tr>
-                            <td colspan="7" style="text-align: center;">No records found for Grade <?= $grade ?></td>
-                        </tr>
-                    <?php endif; ?>
-                </table>
+                <table class="table" id="gradesTable">
+    <tr>
+        <th>LEARNING AREAS</th>
+        <th>1st Quarter</th>
+        <th>2nd Quarter</th>
+        <th>3rd Quarter</th>
+        <th>4th Quarter</th>
+        <th>Final Rating</th>
+        <th>Remarks</th>
+    </tr>
+    <?php foreach ($filteredGrades as $gradeData): ?>
+        <tr class="grade-row">
+            <td><?= htmlspecialchars($gradeData['subject_name']); ?></td>
+            <td class="quarter-grade"><?= htmlspecialchars($gradeData['first_grading']); ?></td>
+            <td class="quarter-grade"><?= htmlspecialchars($gradeData['second_grading']); ?></td>
+            <td class="quarter-grade"><?= htmlspecialchars($gradeData['third_grading']); ?></td>
+            <td class="quarter-grade"><?= htmlspecialchars($gradeData['fourth_grading']); ?></td>
+            <td class="final-grade"><?= htmlspecialchars($gradeData['final_grade']); ?></td>
+            <td><?= htmlspecialchars($gradeData['status']); ?></td>
+        </tr>
+    <?php endforeach; ?>
+    <?php if (!empty($filteredGrades)): ?>
+        <tr>
+            <td colspan="5" style="text-align: right;">General Average</td>
+            <td id="generalAverage"></td>
+            <td></td>
+        </tr>
+    <?php else: ?>
+        <tr>
+            <td colspan="7" style="text-align: center;">No records found for Grade <?= $grade ?></td>
+        </tr>
+    <?php endif; ?>
+</table>
+
+<script>
+    function calculateGeneralAverage() {
+        const rows = document.querySelectorAll('.grade-row');
+        let totalSum = 0;
+        let totalSubjects = 0;
+
+        rows.forEach(row => {
+            const quarterGrades = row.querySelectorAll('.quarter-grade');
+            let sum = 0;
+            let validGrades = 0;
+
+            // Loop through quarter grades and sum them
+            quarterGrades.forEach(cell => {
+                const grade = parseFloat(cell.textContent);
+                if (!isNaN(grade)) {
+                    sum += grade;
+                    validGrades++;
+                }
+            });
+
+            // Calculate final grade if there are valid quarter grades
+            if (validGrades > 0) {
+                const finalGrade = sum / validGrades; // Average of the 4 quarters
+                row.querySelector('.final-grade').textContent = finalGrade.toFixed(2);
+                totalSum += finalGrade;
+                totalSubjects++;
+            }
+        });
+
+        // Calculate and display general average
+        if (totalSubjects > 0) {
+            const generalAverage = totalSum / totalSubjects;
+            document.getElementById('generalAverage').textContent = generalAverage.toFixed(2);
+        }
+    }
+
+    // Run the calculation when the page loads
+    window.onload = calculateGeneralAverage;
+</script>
+
             </div>
         <?php endfor; ?>
     </div>
