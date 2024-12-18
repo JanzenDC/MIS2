@@ -514,7 +514,7 @@ $conn->close();
                     <div style="flex: 1 1 16%; text-align: center; margin-bottom: 5px;">GRADE LEVEL: 11</div>
                     <div style="flex: 1 1 16%; text-align: center; margin-bottom: 5px;">SY: _________________</div>
                     <div style="flex: 1 1 16%; text-align: center; margin-bottom: 5px;">SECTION:_________________</div>
-                    <div style="flex: 1 1 16%; text-align: center; margin-bottom: 5px;">SEM: 1st</div>
+                    <div style="flex: 1 1 16%; text-align: center; margin-bottom: 5px;">SEM: 2nd</div>
                 </div>
             </div>
             <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
@@ -537,7 +537,7 @@ $conn->close();
                 </thead>
                 <tbody>
                     <?php
-                    foreach ($subjects['grade_11']['first_semester'] as $subject) {
+                    foreach ($subjects['grade_11']['second_semester'] as $subject) {
                         echo "<tr>";
                         echo "<td style='border: 1px solid black; padding: 5px; text-align: center;'>".$subject['curriculum']."</td>";
                         echo "<td style='border: 1px solid black; padding: 5px; text-align: center;'>".$subject['subject_name']."</td>";
@@ -595,7 +595,7 @@ $conn->close();
                     <div style="flex: 1 1 16%; text-align: center; margin-bottom: 5px;">GRADE LEVEL: 12</div>
                     <div style="flex: 1 1 16%; text-align: center; margin-bottom: 5px;">SY: _________________</div>
                     <div style="flex: 1 1 16%; text-align: center; margin-bottom: 5px;">SECTION:_________________</div>
-                    <div style="flex: 1 1 16%; text-align: center; margin-bottom: 5px;">SEM: 2nd</div>
+                    <div style="flex: 1 1 16%; text-align: center; margin-bottom: 5px;">SEM: 1st</div>
                 </div>
             </div>
             <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
